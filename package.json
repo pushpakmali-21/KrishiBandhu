@@ -1,0 +1,14 @@
+{
+  "name": "krishibandhu-root",
+  "version": "1.0.0",
+  "description": "Root package to run both frontend and backend simultaneously",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "npm run dev --prefix krishibandhu",
+    "dev:backend": "npm run dev --prefix krishibandhu-backend",
+    "install:all": "npm install && npm install --prefix krishibandhu && npm install --prefix krishibandhu-backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
