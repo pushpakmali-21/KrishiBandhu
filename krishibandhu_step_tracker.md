@@ -16,42 +16,42 @@
 
 ## Phase 2 — Farmer Input Form
 
-- [ ] Add an "Edit Inputs" button in the Crop Analysis section header
-- [ ] Build a modal form with fields: Crop Quantity (quintals), Quality Grade (A/B/C), Storage Condition, Days in Storage, Selling Urgency
-- [ ] Wire modal open/close state in React (useState)
-- [ ] Save farmer inputs to React Context (or local state) so the dashboard can access them
-- [ ] Display a summary of entered inputs as a small badge/tag near the crop selector
+- [x] Add an "Edit Inputs" button in the Crop Analysis section header
+- [x] Build a modal form with fields: Crop Quantity (quintals), Quality Grade (A/B/C), Storage Condition, Days in Storage, Selling Urgency
+- [x] Wire modal open/close state in React (useState)
+- [x] Save farmer inputs to React Context (or local state) so the dashboard can access them
+- [x] Display a summary of entered inputs as a small badge/tag near the crop selector
 
 ---
 
 ## Phase 3 — Net-Profit Calculator
 
-- [ ] Make the Current Price card clickable — add a subtle hover state and cursor pointer
-- [ ] Build the Profit Calculator modal with two inputs: Expected Yield (qtl) and Distance to Mandi (km)
-- [ ] Implement the formula: Net Profit = (Price × Yield) − (Freight Cost/km × Distance)
-- [ ] Show side-by-side comparison: "Sell Today" profit vs "Wait for Peak" profit
-- [ ] Add a risk note: e.g. "8.8% gain with 2.5% volatility = LOW RISK"
+- [x] Make the Current Price card clickable — add a subtle hover state and cursor pointer
+- [x] Build the Profit Calculator modal with two inputs: Expected Yield (qtl) and Distance to Mandi (km)
+- [x] Implement the formula: Net Profit = (Price × Yield) − (Freight Cost/km × Distance)
+- [x] Show side-by-side comparison: "Sell Today" profit vs "Wait for Peak" profit
+- [x] Add a risk note: e.g. "8.8% gain with 2.5% volatility = LOW RISK"
 
 ---
 
 ## Phase 4 — Weather Context Card
 
-- [ ] Sign up for a free OpenWeatherMap API key
-- [ ] Fetch 3-day weather forecast for the selected mandi location (e.g. Nashik Hub)
-- [ ] Build a Weather Context Card component that shows temperature + a short actionable message
-- [ ] Add crop-weather logic: if rain in 2 days → show "⚠️ Consider selling early" alert
-- [ ] Place the card in the dashboard grid next to the Market Volatility card
+- [x] Sign up for a free OpenWeatherMap API key (Used backend mock data instead)
+- [x] Fetch forecast for the selected mandi location (Nashik Hub)
+- [x] Build a Weather Context Card component that shows temperature + a short actionable message
+- [x] Add crop-weather logic: if rain predicted → show "⚠️ Consider selling early" alert
+- [x] Place the card in the dashboard grid next to the Market Volatility card
 
 ---
 
 ## Phase 5 — Marketplace Tab
 
-- [ ] Add "Marketplace" as a new tab in the dashboard navigation bar
-- [ ] Create mock buyer data array (5–8 buyers) with: name, location, trust score, KYC status, avg price, volume
-- [ ] Build BuyerCard component showing trust stars, verification badge, and crop price offered
-- [ ] Implement color-coded trust levels: Green (4.5+), Yellow (3.5–4.4), Red (<3.5)
-- [ ] Add "Initiate Trade" and "Call Buyer" buttons on each high-trust buyer card
-- [ ] Add a filter bar: filter buyers by crop type, minimum trust score, and location
+- [x] Add "Marketplace" as a new tab in the dashboard navigation bar
+- [x] Create mock buyer data array (5–8 buyers) with: name, location, trust score, KYC status, avg price, volume
+- [x] Build BuyerCard component showing trust stars, verification badge, and crop price offered
+- [x] Implement color-coded trust levels: Green (4.5+), Yellow (3.5–4.4), Red (<3.5)
+- [x] Add "Initiate Trade" and "Call Buyer" buttons on each high-trust buyer card
+- [x] Add a filter bar: filter buyers by crop type, minimum trust score, and location
 
 ---
 
