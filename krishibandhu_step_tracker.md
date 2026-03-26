@@ -6,11 +6,11 @@
 
 ## Phase 1 — Localization & Language
 
-- [ ] Install i18next (or react-intl) and set up the translation config
-- [ ] Create translation JSON files for English, Hindi, and Marathi — start with all existing UI labels
-- [ ] Add Language Switcher dropdown (EN / HI / MR) to top-right navbar
-- [ ] Persist selected language to localStorage so it survives page refresh
-- [ ] Test every visible text label switches correctly across all 3 languages
+- [x] Install i18next (or react-intl) and set up the translation config
+- [x] Create translation JSON files for English, Hindi, and Marathi — start with all existing UI labels
+- [x] Add Language Switcher dropdown (EN / HI / MR) to top-right navbar
+- [x] Persist selected language to localStorage so it survives page refresh
+- [x] Test every visible text label switches correctly across all 3 languages
 
 ---
 

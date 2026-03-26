@@ -1,0 +1,144 @@
+{
+  "nav": {
+    "brand": "KrishiBandhu",
+    "enter_dashboard": "Enter Dashboard",
+    "live_mandi": "Live Mandi Feed",
+    "nashik_hub": "Nashik Hub"
+  },
+  "landing": {
+    "hero_title": "Smart Pricing Intelligence",
+    "hero_title_highlight": "for Farmers",
+    "hero_subtitle": "Get AI-powered price forecasts, market demand insights, and smart selling recommendations to maximize your farm profits.",
+    "start_now": "Start Now",
+    "feature_price_title": "Price Forecasting",
+    "feature_price_desc": "AI predicts next 7 days of mandi prices with 85% accuracy based on historical trends.",
+    "feature_rec_title": "Smart Recommendations",
+    "feature_rec_desc": "Actionable \"Sell Now\" or \"Wait\" advice calculated in real-time from market volatility.",
+    "feature_trust_title": "Trusted Marketplace",
+    "feature_trust_desc": "Connect with verified buyers and get fair prices instantly without middlemen.",
+    "footer": "© 2026 KrishiBandhu. Dedicated to the Prosperity of Indian Farmers."
+  },
+  "dashboard": {
+    "title": "KrishiBandhu",
+    "subtitle": "Market Intelligence",
+    "tabs": {
+      "dashboard": "Dashboard",
+      "marketplace": "Marketplace",
+      "live_mandi": "Live Mandi"
+    },
+    "crop_analysis": "Crop Analysis",
+    "edit_inputs": "Edit Inputs",
+    "crops": {
+      "wheat": "Wheat",
+      "jowar": "Jowar",
+      "cotton": "Cotton"
+    },
+    "metrics": {
+      "current_price": "Current Price",
+      "per_quintal": "/quintal",
+      "forecast_peak": "7-Day Forecast Peak",
+      "volatility": "Market Volatility",
+      "high_risk": "HIGH RISK",
+      "low_risk": "LOW RISK"
+    },
+    "recommendation": {
+      "label": "AI Recommendation",
+      "confidence": "ML Confidence Score"
+    },
+    "chart": {
+      "title": "Price Trend & Forecast",
+      "window": "30 Day Window"
+    },
+    "heatmap": {
+      "title": "7-Day Demand Heatmap",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "day": "DAY"
+    },
+    "loading": "Harvesting latest data...",
+    "error_title": "Data Unavailable",
+    "retry": "Retry"
+  },
+  "farmer_form": {
+    "title": "Farmer Inputs",
+    "quantity_label": "Crop Quantity (quintals)",
+    "quantity_placeholder": "e.g. 50",
+    "quality_label": "Quality Grade",
+    "quality_a": "Grade A (Premium)",
+    "quality_b": "Grade B (Standard)",
+    "quality_c": "Grade C (Basic)",
+    "storage_label": "Storage Condition",
+    "storage_fresh": "Fresh (just harvested)",
+    "storage_stored": "Stored",
+    "days_label": "Days in Storage",
+    "days_placeholder": "e.g. 5",
+    "urgency_label": "Selling Urgency",
+    "urgency_immediate": "Immediate",
+    "urgency_3days": "Within 3 Days",
+    "urgency_flexible": "Flexible",
+    "save": "Save Inputs",
+    "cancel": "Cancel"
+  },
+  "profit_calculator": {
+    "title": "Net-Profit Calculator",
+    "yield_label": "Expected Yield (quintals)",
+    "yield_placeholder": "e.g. 50",
+    "distance_label": "Distance to Mandi (km)",
+    "distance_placeholder": "e.g. 25",
+    "sell_today": "Sell Today",
+    "wait_for_peak": "Wait for Peak",
+    "net_profit": "Net Profit",
+    "gross": "Gross Revenue",
+    "freight": "Freight Cost",
+    "risk_low": "LOW RISK",
+    "risk_high": "HIGH RISK",
+    "close": "Close"
+  },
+  "weather": {
+    "title": "Weather Context",
+    "rain_alert": "⚠️ Rain expected in {days} day(s). Consider selling early.",
+    "good_weather": "✅ Clear skies ahead. Good conditions for transport.",
+    "humidity": "Humidity",
+    "rainfall": "Rainfall"
+  },
+  "marketplace": {
+    "title": "Trusted Marketplace",
+    "enam_badge": "Verified by e-NAM",
+    "filter_crop": "Filter by Crop",
+    "filter_trust": "Min. Trust Score",
+    "filter_location": "Location",
+    "all": "All",
+    "initiate_trade": "Initiate Trade",
+    "call_buyer": "Call Buyer",
+    "transactions": "Transactions",
+    "kyc_verified": "KYC Verified",
+    "trust_score": "Trust Score",
+    "sms_title": "📱 SMS Fallback — No Smartphone? No Problem.",
+    "sms_subtitle": "Farmers without smartphones receive key advice via SMS:",
+    "sms_sample": "KrishiBandhu: Wheat price ₹2,150. AI says WAIT — ₹2,340 expected in 7 days. Reply HELP for info."
+  },
+  "voice": {
+    "start": "Tap to speak",
+    "listening": "Listening...",
+    "not_supported": "Voice not supported in this browser",
+    "reading": "Reading recommendation..."
+  },
+  "volatility_modal": {
+    "title": "Market Volatility Detail",
+    "historical": "Historical Volatility",
+    "risk_factors": "Key Risk Factors",
+    "mitigation": "Mitigation Strategy",
+    "close": "Close"
+  },
+  "live_mandi": {
+    "title": "Live Mandi Feed",
+    "recent_trades": "Recent Trades",
+    "nearby_mandis": "Nearby Mandi Prices",
+    "crop": "Crop",
+    "price": "Price",
+    "volume": "Volume",
+    "time": "Time",
+    "mandi": "Mandi"
+  }
+}

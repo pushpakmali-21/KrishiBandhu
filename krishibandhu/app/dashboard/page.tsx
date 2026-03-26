@@ -6,6 +6,8 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 import { Zap, TrendingUp, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000/api';
 
@@ -33,6 +35,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const crops = ['wheat', 'jowar', 'cotton'];
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchDashboardData();
@@ -100,12 +103,13 @@ export default function Dashboard() {
             <h1 className="text-2xl font-black text-green-800 tracking-tight">KrishiBandhu</h1>
             <p className="text-xs font-bold text-green-600 uppercase tracking-widest">Market Intelligence</p>
           </div>
-          <div className="hidden md:flex gap-6 items-center">
+          <div className="hidden md:flex gap-3 items-center">
              <span className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                Live Mandi Feed
+                {t('nav.live_mandi')}
              </span>
-             <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md">Nashik Hub</button>
+             <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md">{t('nav.nashik_hub')}</button>
+             <LanguageSwitcher />
           </div>
         </div>
       </header>
