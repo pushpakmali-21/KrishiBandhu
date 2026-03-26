@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KrishiBandhu — Build Checklist</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --color-bg: #ffffff;
+    --color-bg-secondary: #f5f5f3;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #5f5e5a;
+    --color-text-tertiary: #888780;
+    --color-border: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.22);
+    --color-success-bg: #eaf3de;
+    --color-success-text: #3b6d11;
+    --color-success-border: #97c459;
+    --color-info-bg: #e6f1fb;
+    --color-info-text: #185fa5;
+    --color-warning-bg: #faeeda;
+    --color-warning-text: #854f0b;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #1e1e1c;
+      --color-bg-secondary: #2a2a28;
+      --color-text-primary: #f0ede8;
+      --color-text-secondary: #a8a59f;
+      --color-text-tertiary: #6e6c68;
+      --color-border: rgba(255,255,255,0.1);
+      --color-border-secondary: rgba(255,255,255,0.2);
+      --color-success-bg: #173404;
+      --color-success-text: #c0dd97;
+      --color-success-border: #3b6d11;
+      --color-info-bg: #042c53;
+      --color-info-text: #b5d4f4;
+      --color-warning-bg: #412402;
+      --color-warning-text: #fac775;
+    }
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    padding: 2rem 1.5rem;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  .title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+  .reset-btn { font-size: 12px; color: var(--color-text-tertiary); background: none; border: none; cursor: pointer; padding: 4px 0; font-family: var(--font); }
+  .reset-btn:hover { color: var(--color-text-secondary); }
+
+  .summary { display: flex; gap: 12px; margin-bottom: 1.5rem; }
+  .stat-card { flex: 1; background: var(--color-bg-secondary); border-radius: var(--radius-md); padding: 12px 14px; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .stat-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+
+  .phase { margin-bottom: 1rem; border: 0.5px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+  .phase-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; background: var(--color-bg-secondary); user-select: none; }
+  .phase-label { font-size: 13px; font-weight: 500; flex: 1; color: var(--color-text-primary); }
+  .phase-progress { font-size: 12px; color: var(--color-text-secondary); }
+  .phase-arrow { font-size: 11px; color: var(--color-text-tertiary); transition: transform 0.2s; }
+  .phase-arrow.open { transform: rotate(90deg); }
+  .phase-bar-wrap { height: 3px; background: var(--color-border); }
+  .phase-bar { height: 100%; transition: width 0.3s; }
+
+  .steps { display: none; }
+  .steps.open { display: block; }
+
+  .step { display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px; border-top: 0.5px solid var(--color-border); cursor: pointer; transition: background 0.15s; }
+  .step:hover { background: var(--color-bg-secondary); }
+  .step.done .step-text { text-decoration: line-through; color: var(--color-text-tertiary); }
+  .step-check { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--color-border-secondary); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .step.done .step-check { background: var(--color-success-bg); border-color: var(--color-success-border); }
+  .step-tick { display: none; width: 10px; height: 10px; }
+  .step.done .step-tick { display: block; }
+  .step-text { font-size: 14px; color: var(--color-text-primary); line-height: 1.5; }
+
+  .step-tag { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px; margin-left: 6px; vertical-align: middle; }
+  .tag-logic { background: var(--color-success-bg); color: var(--color-success-text); }
+  .tag-ui { background: var(--color-info-bg); color: var(--color-info-text); }
+  .tag-api { background: var(--color-warning-bg); color: var(--color-warning-text); }
+  .tag-demo { background: var(--color-bg-secondary); color: var(--color-text-secondary); border: 0.5px solid var(--color-border); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title">KrishiBandhu — Build Checklist</div>
+  <button class="reset-btn" onclick="resetAll()">reset progress</button>
+</div>
+
+<div class="summary">
+  <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value" id="done-count">0</div></div>
+  <div class="stat-card"><div class="stat-label">Remaining</div><div class="stat-value" id="rem-count">0</div></div>
+  <div class="stat-card"><div class="stat-label">Progress</div><div class="stat-value" id="pct">0%</div></div>
+</div>
+
+<div id="phases"></div>
+
+<script>
+const PHASES = [
+  {
+    id: 'p1', label: 'Phase 1 — Localization & Language', color: '#1D9E75',
+    steps: [
+      { id: 's1', text: 'Install i18next (or react-intl) and set up the translation config', tag: 'logic' },
+      { id: 's2', text: 'Create translation JSON files for English, Hindi, and Marathi — start with all existing UI labels', tag: 'ui' },
+      { id: 's3', text: 'Add Language Switcher dropdown (EN / HI / MR) to top-right navbar', tag: 'ui' },
+      { id: 's4', text: 'Persist selected language to localStorage so it survives page refresh', tag: 'logic' },
+      { id: 's5', text: 'Test every visible text label switches correctly across all 3 languages', tag: 'logic' },
+    ]
+  },
+  {
+    id: 'p2', label: 'Phase 2 — Farmer Input Form', color: '#378ADD',
+    steps: [
+      { id: 's6', text: 'Add an "Edit Inputs" button in the Crop Analysis section header', tag: 'ui' },
+      { id: 's7', text: 'Build a modal form with fields: Crop Quantity (quintals), Quality Grade (A/B/C), Storage Condition, Days in Storage, Selling Urgency', tag: 'ui' },
+      { id: 's8', text: 'Wire modal open/close state in React (useState)', tag: 'logic' },
+      { id: 's9', text: 'Save farmer inputs to React Context (or local state) so the dashboard can access them', tag: 'logic' },
+      { id: 's10', text: 'Display a summary of entered inputs as a small badge/tag near the crop selector', tag: 'ui' },
+    ]
+  },
+  {
+    id: 'p3', label: 'Phase 3 — Net-Profit Calculator', color: '#BA7517',
+    steps: [
+      { id: 's11', text: 'Make the Current Price card clickable — add a subtle hover state and cursor pointer', tag: 'ui' },
+      { id: 's12', text: 'Build the Profit Calculator modal with two inputs: Expected Yield (qtl) and Distance to Mandi (km)', tag: 'ui' },
+      { id: 's13', text: 'Implement the formula: Net Profit = (Price × Yield) − (Freight Cost/km × Distance)', tag: 'logic' },
+      { id: 's14', text: 'Show side-by-side comparison: "Sell Today" profit vs "Wait for Peak" profit', tag: 'ui' },
+      { id: 's15', text: 'Add a risk note: e.g. "8.8% gain with 2.5% volatility = LOW RISK"', tag: 'ui' },
+    ]
+  },
+  {
+    id: 'p4', label: 'Phase 4 — Weather Context Card', color: '#7F77DD',
+    steps: [
+      { id: 's16', text: 'Sign up for a free OpenWeatherMap API key', tag: 'api' },
+      { id: 's17', text: 'Fetch 3-day weather forecast for the selected mandi location (e.g. Nashik Hub)', tag: 'api' },
+      { id: 's18', text: 'Build a Weather Context Card component that shows temperature + a short actionable message', tag: 'ui' },
+      { id: 's19', text: 'Add crop-weather logic: if rain in 2 days → show "⚠️ Consider selling early" alert', tag: 'logic' },
+      { id: 's20', text: 'Place the card in the dashboard grid next to the Market Volatility card', tag: 'ui' },
+    ]
+  },
+  {
+    id: 'p5', label: 'Phase 5 — Marketplace Tab', color: '#D85A30',
+    steps: [
+      { id: 's21', text: 'Add "Marketplace" as a new tab in the dashboard navigation bar', tag: 'ui' },
+      { id: 's22', text: 'Create mock buyer data array (5–8 buyers) with: name, location, trust score, KYC status, avg price, volume', tag: 'logic' },
+      { id: 's23', text: 'Build BuyerCard component showing trust stars, verification badge, and crop price offered', tag: 'ui' },
+      { id: 's24', text: 'Implement color-coded trust levels: Green (4.5+), Yellow (3.5–4.4), Red (<3.5)', tag: 'ui' },
+      { id: 's25', text: 'Add "Initiate Trade" and "Call Buyer" buttons on each high-trust buyer card', tag: 'ui' },
+      { id: 's26', text: 'Add a filter bar: filter buyers by crop type, minimum trust score, and location', tag: 'ui' },
+    ]
+  },
+  {
+    id: 'p6', label: 'Phase 6 — Voice Assistant (Krishi-Vani)', color: '#3C3489',
+    steps: [
+      { id: 's27', text: 'Add a floating microphone FAB button (bottom-right corner of dashboard)', tag: 'ui' },
+      { id: 's28', text: 'Implement Web Speech API SpeechRecognition — start/stop on FAB click', tag: 'api' },
+      { id: 's29', text: 'Write intent-matcher: if transcript includes "bechu"/"sell" → highlight Sell card; "ruku"/"wait" → highlight Wait card', tag: 'logic' },
+      { id: 's30', text: 'Add voice output using SpeechSynthesis to read aloud the current AI recommendation', tag: 'logic' },
+      { id: 's31', text: 'Test mic in Chrome and fallback gracefully if browser does not support Web Speech API', tag: 'logic' },
+    ]
+  },
+  {
+    id: 'p7', label: 'Phase 7 — Volatility Detail & Live Mandi', color: '#639922',
+    steps: [
+      { id: 's32', text: 'Make the Market Volatility card clickable to open a detail modal', tag: 'ui' },
+      { id: 's33', text: 'Add a historical volatility mini-sparkline chart inside the modal (use mocked data)', tag: 'ui' },
+      { id: 's34', text: 'List 3–4 key risk factors (e.g. monsoon impact, procurement policy, export demand)', tag: 'logic' },
+      { id: 's35', text: 'Populate the Live Mandi Feed with at least mocked recent trade entries (price, volume, time)', tag: 'ui' },
+      { id: 's36', text: 'Add price comparison across 2–3 nearby mandis in the feed', tag: 'ui' },
+    ]
+  },
+  {
+    id: 'p8', label: 'Phase 8 — Polish & Demo Prep', color: '#888780',
+    steps: [
+      { id: 's37', text: 'Add a "Verified by e-NAM" badge to the Marketplace tab header', tag: 'demo' },
+      { id: 's38', text: 'Add an SMS Fallback concept section: a mockup showing a sample "Sell/Wait" SMS message', tag: 'demo' },
+      { id: 's39', text: 'Do a full end-to-end flow test switching language to Marathi, entering farmer inputs, and using voice', tag: 'logic' },
+      { id: 's40', text: 'Check all modals close correctly, all cards are responsive on mobile width', tag: 'logic' },
+      { id: 's41', text: 'Write a 30-second demo script: Landing Page → Dashboard → Profit Calculator → Marketplace → Voice FAB', tag: 'demo' },
+    ]
+  }
+];
+
+const KEY = 'kb_checklist_v1';
+function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { return {}; } }
+function save(state) { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+
+let state = load();
+
+function toggleStep(id) { state[id] = !state[id]; save(state); render(); }
+function resetAll() { if (confirm('Reset all progress?')) { state = {}; save(state); render(); } }
+function togglePhase(id) { state['open_' + id] = state['open_' + id] === false ? true : false; save(state); render(); }
+
+function render() {
+  const container = document.getElementById('phases');
+  container.innerHTML = '';
+  let totalDone = 0, totalAll = 0;
+
+  PHASES.forEach(phase => {
+    const phaseDone = phase.steps.filter(s => state[s.id]).length;
+    const phaseTotal = phase.steps.length;
+    const pct = Math.round((phaseDone / phaseTotal) * 100);
+    totalDone += phaseDone;
+    totalAll += phaseTotal;
+    const isOpen = state['open_' + phase.id] !== false;
+
+    const el = document.createElement('div');
+    el.className = 'phase';
+    el.innerHTML = `
+      <div class="phase-header" onclick="togglePhase('${phase.id}')">
+        <div class="phase-label">${phase.label}</div>
+        <div class="phase-progress">${phaseDone}/${phaseTotal}</div>
+        <div class="phase-arrow ${isOpen ? 'open' : ''}">▶</div>
+      </div>
+      <div class="phase-bar-wrap"><div class="phase-bar" style="width:${pct}%; background:${phase.color};"></div></div>
+      <div class="steps ${isOpen ? 'open' : ''}">
+        ${phase.steps.map(s => `
+          <div class="step ${state[s.id] ? 'done' : ''}" onclick="toggleStep('${s.id}')">
+            <div class="step-check">
+              <svg class="step-tick" viewBox="0 0 10 10" fill="none">
+                <polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#3b6d11" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="step-text">${s.text}<span class="step-tag tag-${s.tag}">${s.tag}</span></div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  const pct = totalAll ? Math.round((totalDone / totalAll) * 100) : 0;
+  document.getElementById('done-count').textContent = totalDone;
+  document.getElementById('rem-count').textContent = totalAll - totalDone;
+  document.getElementById('pct').textContent = pct + '%';
+}
+
+render();
+</script>
+</body>
+</html>
