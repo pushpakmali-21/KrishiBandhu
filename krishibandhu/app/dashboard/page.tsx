@@ -55,7 +55,12 @@ export default function Dashboard() {
   const [weatherData, setWeatherData] = useState<any>(null);
   const [currentTab, setCurrentTab] = useState<'insights' | 'marketplace' | 'mandi'>('insights');
 
-  const crops = ['wheat', 'jowar', 'cotton'];
+  const cropGroups = [
+    { key: 'grains', items: ['wheat', 'jowar', 'rice'] },
+    { key: 'fibres', items: ['cotton', 'jute'] },
+    { key: 'pulses', items: ['tur'] },
+    { key: 'spices', items: ['redChilli'] }
+  ];
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -83,7 +88,7 @@ export default function Dashboard() {
       setWeatherData(weatherRes.data);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to reach the server.';
-      console.error('Error fetching data:', err);
+      console.warn('API Error:', message);
       setError(`Could not load market data: ${message}. Make sure the backend is running.`);
     } finally {
       setLoading(false);
@@ -99,23 +104,7 @@ export default function Dashboard() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-red-50 px-6">
-        <div className="bg-white rounded-2xl p-10 shadow-lg border border-red-200 max-w-lg text-center">
-          <p className="text-4xl mb-4">⚠️</p>
-          <h2 className="text-xl font-black text-red-800 mb-3">Data Unavailable</h2>
-          <p className="text-gray-600 leading-relaxed mb-6">{error}</p>
-          <button
-            onClick={fetchDashboardData}
-            className="bg-green-600 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-green-700 transition"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
@@ -176,26 +165,46 @@ export default function Dashboard() {
                   {t('dashboard.edit_inputs')}
                 </button>
              </div>
-             <div className="bg-white p-1 rounded-xl shadow-inner border border-gray-100 flex gap-1">
-               {crops.map((crop) => (
-                <button
-                  key={crop}
-                  onClick={() => setSelectedCrop(crop)}
-                  className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all ${
-                    selectedCrop === crop
-                      ? 'bg-green-600 text-white shadow-lg shadow-green-200'
-                      : 'text-gray-500 hover:text-green-600 hover:bg-green-50'
-                  }`}
-                >
-                  {t(`dashboard.crops.${crop}`)}
-                </button>
-               ))}
+             <div className="bg-white p-1 rounded-xl shadow-inner border border-gray-100 relative min-w-[220px] shadow-sm hover:shadow-md transition-shadow">
+               <select
+                  value={selectedCrop}
+                  onChange={(e) => setSelectedCrop(e.target.value)}
+                  className="w-full bg-transparent px-4 py-2.5 rounded-lg font-black text-sm text-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer z-10 relative"
+               >
+                 {cropGroups.map((group) => (
+                   <optgroup key={group.key} label={t(`dashboard.crop_groups.${group.key}`)}>
+                     {group.items.map((crop) => (
+                       <option key={crop} value={crop}>
+                         {t(`dashboard.crops.${crop}`)}
+                       </option>
+                     ))}
+                   </optgroup>
+                 ))}
+               </select>
+               <div className="absolute top-1/2 right-4 -translate-y-1/2 text-green-600 pointer-events-none text-xs font-black">
+                 ▼
+               </div>
              </div>
           </div>
         </div>
+        </div>
 
-        {/* Key Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        {error ? (
+          <div className="bg-white rounded-3xl p-12 border border-red-100 shadow-sm text-center max-w-2xl mx-auto my-12 animate-in fade-in duration-500">
+            <p className="text-6xl mb-6">⚠️</p>
+            <h2 className="text-2xl font-black text-red-800 mb-4">Data Unavailable</h2>
+            <p className="text-gray-600 font-medium leading-relaxed mb-8">{error}</p>
+            <button
+              onClick={fetchDashboardData}
+              className="bg-green-600 text-white px-8 py-3.5 rounded-xl font-black text-sm hover:bg-green-700 transition shadow-lg shadow-green-200 hover:shadow-green-300"
+            >
+              Retry Connection
+            </button>
+          </div>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {/* Key Metrics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <button onClick={() => setShowCalcModal(true)} className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-all hover:scale-[1.02] hover:border-green-300 hover:shadow-green-100 cursor-pointer text-left w-full group">
             <p className="text-gray-400 text-xs font-bold uppercase tracking-widest" suppressHydrationWarning>{t('metrics.current_price')}</p>
             <div className="flex items-end gap-2 mt-2">
@@ -369,6 +378,8 @@ export default function Dashboard() {
           })}
           </div>
         </div>
+          </div>
+        )}
       </>
     )}
 

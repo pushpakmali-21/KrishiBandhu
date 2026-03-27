@@ -5,13 +5,13 @@ const router = express.Router();
 // GET /api/prices/:crop
 router.get('/:crop', (req, res) => {
   const { crop } = req.params;
-  const cropLower = crop.toLowerCase();
+  const targetCrop = Object.keys(mockPrices).find(k => k.toLowerCase() === crop.toLowerCase());
 
-  if (!mockPrices[cropLower]) {
+  if (!targetCrop || !mockPrices[targetCrop]) {
     return res.status(404).json({ error: 'Crop not found' });
   }
 
-  res.json(mockPrices[cropLower]);
+  res.json(mockPrices[targetCrop]);
 });
 
 // GET /api/prices - All crops

@@ -28,10 +28,20 @@
                                },
                       "crop_analysis":  "पीक विश्लेषण",
                       "edit_inputs":  "इनपुट संपादित करा",
+                      "crop_groups": {
+                          "grains": "धान्ये",
+                          "fibres": "तंतू",
+                          "pulses": "कडधान्ये",
+                          "spices": "मसाले"
+                      },
                       "crops":  {
                                     "wheat":  "गहू",
                                     "jowar":  "ज्वारी",
-                                    "cotton":  "कापूस"
+                                    "rice": "तांदूळ",
+                                    "cotton":  "कापूस",
+                                    "jute": "ताग",
+                                    "tur": "तूर",
+                                    "redChilli": "लाल मिरची"
                                 },
                       "metrics":  {
                                       "current_price":  "सध्याची किंमत",

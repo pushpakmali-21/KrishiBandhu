@@ -28,10 +28,20 @@
                                },
                       "crop_analysis":  "फसल विश्लेषण",
                       "edit_inputs":  "इनपुट संपादित करें",
+                      "crop_groups": {
+                          "grains": "अनाज",
+                          "fibres": "फाइबर",
+                          "pulses": "दालें",
+                          "spices": "मसाले"
+                      },
                       "crops":  {
                                     "wheat":  "गेहूं",
                                     "jowar":  "ज्वार",
-                                    "cotton":  "कपास"
+                                    "rice": "चावल",
+                                    "cotton":  "कपास",
+                                    "jute": "जूट",
+                                    "tur": "अरहर",
+                                    "redChilli": "लाल मिर्च"
                                 },
                       "metrics":  {
                                       "current_price":  "वर्तमान मूल्य",

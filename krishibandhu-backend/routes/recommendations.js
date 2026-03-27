@@ -6,13 +6,13 @@ const router = express.Router();
 // GET /api/recommendations/:crop
 router.get('/:crop', async (req, res) => {
   const { crop } = req.params;
-  const cropLower = crop.toLowerCase();
+  const targetCrop = Object.keys(mockPrices).find(k => k.toLowerCase() === crop.toLowerCase());
 
-  if (!mockPrices[cropLower]) {
+  if (!targetCrop || !mockPrices[targetCrop]) {
     return res.status(404).json({ error: 'Crop not found' });
   }
 
-  const data = mockPrices[cropLower];
+  const data = mockPrices[targetCrop];
 
   try {
     const mlResult = await callPythonModel({
@@ -21,7 +21,7 @@ router.get('/:crop', async (req, res) => {
     });
 
     res.json({
-      crop: cropLower,
+      crop: targetCrop,
       recommendation: mlResult.recommendation.action,
       confidence: mlResult.recommendation.confidence,
       reasoning: mlResult.recommendation.reasoning || mlResult.recommendation.action,

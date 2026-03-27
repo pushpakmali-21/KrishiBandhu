@@ -28,10 +28,20 @@
                                },
                       "crop_analysis":  "Crop Analysis",
                       "edit_inputs":  "Edit Inputs",
+                      "crop_groups": {
+                          "grains": "Grains",
+                          "fibres": "Fibres",
+                          "pulses": "Pulses",
+                          "spices": "Spices"
+                      },
                       "crops":  {
                                     "wheat":  "Wheat",
                                     "jowar":  "Jowar",
-                                    "cotton":  "Cotton"
+                                    "rice": "Rice",
+                                    "cotton":  "Cotton",
+                                    "jute": "Jute",
+                                    "tur": "Tur (Arhar)",
+                                    "redChilli": "Red Chilli"
                                 },
                       "metrics":  {
                                       "current_price":  "Current Price",
