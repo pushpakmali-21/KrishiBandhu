@@ -123,15 +123,15 @@ export default function Dashboard() {
       <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 shadow-sm border-b border-green-100">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-black text-green-800 tracking-tight">KrishiBandhu</h1>
-            <p className="text-xs font-bold text-green-600 uppercase tracking-widest">Market Intelligence</p>
+            <h1 className="text-2xl font-black text-green-800 tracking-tight" suppressHydrationWarning>{t('nav.brand')}</h1>
+            <p className="text-xs font-bold text-green-600 uppercase tracking-widest" suppressHydrationWarning>{t('dashboard.subtitle')}</p>
           </div>
           <div className="hidden md:flex gap-3 items-center">
-             <span className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
+             <span className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full" suppressHydrationWarning>
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                 {t('nav.live_mandi')}
              </span>
-             <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md">{t('nav.nashik_hub')}</button>
+             <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md" suppressHydrationWarning>{t('nav.nashik_hub')}</button>
              <LanguageSwitcher />
           </div>
         </div>
@@ -167,10 +167,11 @@ export default function Dashboard() {
             <div className="mb-10">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
              <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-extrabold text-gray-800">{t('dashboard.crop_analysis')}</h2>
+                <h2 className="text-2xl font-extrabold text-gray-800" suppressHydrationWarning>{t('dashboard.crop_analysis')}</h2>
                 <button 
                   onClick={() => setShowInputModal(true)}
                   className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100 hover:bg-green-100 transition-colors"
+                  suppressHydrationWarning
                 >
                   {t('dashboard.edit_inputs')}
                 </button>
@@ -196,7 +197,7 @@ export default function Dashboard() {
         {/* Key Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <button onClick={() => setShowCalcModal(true)} className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-all hover:scale-[1.02] hover:border-green-300 hover:shadow-green-100 cursor-pointer text-left w-full group">
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('metrics.current_price')}</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest" suppressHydrationWarning>{t('metrics.current_price')}</p>
             <div className="flex items-end gap-2 mt-2">
               <span className="text-4xl font-black text-green-800">₹{priceData?.current.toLocaleString()}</span>
               <span className="text-gray-500 font-medium pb-1.5">/quintal</span>
@@ -377,8 +378,8 @@ export default function Dashboard() {
           <div className="animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
               <div>
-                <h2 className="text-2xl font-black text-gray-800">{t('marketplace.title')}</h2>
-                <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1">{t('marketplace.subtitle')}</p>
+                <h2 className="text-2xl font-black text-gray-800" suppressHydrationWarning>{t('marketplace.title')}</h2>
+                <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1" suppressHydrationWarning>{t('marketplace.subtitle')}</p>
               </div>
               <div className="flex gap-2">
                 <select className="bg-white border border-green-100 rounded-xl px-4 py-2 text-sm font-bold text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">

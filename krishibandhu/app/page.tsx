@@ -11,7 +11,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-green-700 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-green-700 flex items-center gap-2" suppressHydrationWarning>
             <span>🌾</span> {t('nav.brand')}
           </h1>
           <div className="flex items-center gap-3">
@@ -19,6 +19,7 @@ export default function Home() {
             <Link
               href="/dashboard"
               className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition font-semibold"
+              suppressHydrationWarning
             >
               {t('nav.enter_dashboard')}
             </Link>
@@ -28,17 +29,18 @@ export default function Home() {
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-6 py-20 text-center">
-        <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight">
+        <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight" suppressHydrationWarning>
           {t('landing.hero_title')} <br />
           <span className="text-green-600 font-black">{t('landing.hero_title_highlight')}</span>
         </h2>
-        <p className="text-xl text-gray-700 mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-xl text-gray-700 mb-10 max-w-2xl mx-auto leading-relaxed" suppressHydrationWarning>
           {t('landing.hero_subtitle')}
         </p>
 
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-green-700 transition-all shadow-lg hover:shadow-green-200/50"
+          suppressHydrationWarning
         >
           {t('landing.start_now')} <ArrowRight className="w-5 h-5" />
         </Link>
@@ -51,24 +53,24 @@ export default function Home() {
             <div className="bg-blue-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
                <BarChart3 className="w-8 h-8 text-blue-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">{t('landing.feature_price_title')}</h3>
-            <p className="text-gray-600 leading-relaxed">{t('landing.feature_price_desc')}</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-3" suppressHydrationWarning>{t('landing.feature_price_title')}</h3>
+            <p className="text-gray-600 leading-relaxed" suppressHydrationWarning>{t('landing.feature_price_desc')}</p>
           </div>
 
           <div className="bg-white rounded-2xl p-8 shadow-xl shadow-green-900/5 border border-green-50">
             <div className="bg-yellow-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
                <Zap className="w-8 h-8 text-yellow-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">{t('landing.feature_rec_title')}</h3>
-            <p className="text-gray-600 leading-relaxed">{t('landing.feature_rec_desc')}</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-3" suppressHydrationWarning>{t('landing.feature_rec_title')}</h3>
+            <p className="text-gray-600 leading-relaxed" suppressHydrationWarning>{t('landing.feature_rec_desc')}</p>
           </div>
 
           <div className="bg-white rounded-2xl p-8 shadow-xl shadow-green-900/5 border border-green-50">
             <div className="bg-green-100 w-14 h-14 rounded-xl flex items-center justify-center mb-6">
                <Shield className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">{t('landing.feature_trust_title')}</h3>
-            <p className="text-gray-600 leading-relaxed">{t('landing.feature_trust_desc')}</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-3" suppressHydrationWarning>{t('landing.feature_trust_title')}</h3>
+            <p className="text-gray-600 leading-relaxed" suppressHydrationWarning>{t('landing.feature_trust_desc')}</p>
           </div>
         </div>
       </div>
@@ -76,7 +78,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-white border-t border-green-100 py-12">
         <div className="max-w-7xl mx-auto px-6 text-center text-gray-500 text-sm">
-          <p>{t('landing.footer')}</p>
+          <p suppressHydrationWarning>{t('landing.footer')}</p>
         </div>
       </footer>
     </div>

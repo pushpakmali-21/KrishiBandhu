@@ -29,7 +29,7 @@ export default function LanguageSwitcher() {
         aria-label="Switch language"
       >
         <Globe className="w-4 h-4" />
-        <span>{current.label}</span>
+        <span suppressHydrationWarning>{current.label}</span>
         <span className="text-[10px] opacity-60">▼</span>
       </button>
 
