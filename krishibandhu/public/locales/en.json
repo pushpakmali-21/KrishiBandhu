@@ -43,7 +43,9 @@
                                   },
                       "recommendation":  {
                                              "label":  "AI Recommendation",
-                                             "confidence":  "ML Confidence Score"
+                                             "confidence":  "ML Confidence Score",
+                                             "sell_now": "SELL NOW",
+                                             "wait": "WAIT"
                                          },
                       "chart":  {
                                     "title":  "Price Trend \u0026 Forecast",
@@ -100,7 +102,11 @@
                     "rain_alert":  "⚠️ Rain expected in {days} day(s). Consider selling early.",
                     "good_weather":  "✅ Clear skies ahead. Good conditions for transport.",
                     "humidity":  "Humidity",
-                    "rainfall":  "Rainfall"
+                    "rainfall":  "Rainfall",
+                    "weather_context": "Weather Context",
+                    "location_nashik": "Nashik",
+                    "alert_title": "Weather Alert",
+                    "alert_desc": "Heavy rain expected. Secure crops."
                 },
     "marketplace":  {
                         "title":  "Trusted Marketplace",
@@ -116,7 +122,11 @@
                         "trust_score":  "Trust Score",
                         "sms_title":  "📱 SMS Fallback — No Smartphone? No Problem.",
                         "sms_subtitle":  "Farmers without smartphones receive key advice via SMS:",
-                        "sms_sample":  "KrishiBandhu: Wheat price ₹2,150. AI says WAIT — ₹2,340 expected in 7 days. Reply HELP for info."
+                        "sms_sample":  "KrishiBandhu: Wheat price ₹2,150. AI says WAIT — ₹2,340 expected in 7 days. Reply HELP for info.",
+                        "connect":  "Connect",
+                        "filter_all_locations":  "All Locations",
+                        "filter_trust_score":  "Trust Score",
+                        "subtitle": "Discover and connect with farmers directly"
                     },
     "voice":  {
                   "start":  "Tap to speak",
@@ -140,5 +150,17 @@
                        "volume":  "Volume",
                        "time":  "Time",
                        "mandi":  "Mandi"
-                   }
+                   },
+    "tabs": {
+        "insights": "Insights",
+        "marketplace": "Marketplace",
+        "mandi": "Mandi"
+    },
+    "metrics": {
+        "current_price": "Current Price",
+        "market_volatility": "Market Volatility"
+    },
+    "mandi": {
+        "live_trades": "Live Trades"
+    }
 }

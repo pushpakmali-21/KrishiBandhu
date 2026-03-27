@@ -187,7 +187,7 @@ export default function Dashboard() {
                       : 'text-gray-500 hover:text-green-600 hover:bg-green-50'
                   }`}
                 >
-                  {crop.charAt(0).toUpperCase() + crop.slice(1)}
+                  {t(`dashboard.crops.${crop}`)}
                 </button>
                ))}
              </div>
@@ -206,7 +206,7 @@ export default function Dashboard() {
           </button>
 
           <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02]">
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">7-Day Forecast Peak</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('dashboard.metrics.forecast_peak')}</p>
             <div className="flex items-end gap-2 mt-2">
               <span className="text-4xl font-black text-blue-800">₹{Math.max(...(priceData?.forecast || [0])).toLocaleString()}</span>
               <TrendingUp className="w-6 h-6 text-blue-500 mb-2" />
@@ -218,8 +218,7 @@ export default function Dashboard() {
             <div className="flex items-end gap-3 mt-2">
               <span className="text-4xl font-black text-orange-600">{priceData?.volatility}%</span>
               <div className="flex flex-col text-[10px] font-bold text-gray-400 leading-none pb-1">
-                 <span>{priceData && priceData.volatility > 4 ? 'HIGH' : 'LOW'}</span>
-                 <span>RISK</span>
+                 <span>{priceData && priceData.volatility > 4 ? t('dashboard.metrics.high_risk') : t('dashboard.metrics.low_risk')}</span>
               </div>
             </div>
           </div>
@@ -273,17 +272,17 @@ export default function Dashboard() {
             }`}>
               <div className="flex items-center gap-3 mb-4">
                 <Zap className={`w-6 h-6 ${recommendation?.recommendation === 'WAIT' ? 'text-blue-600' : 'text-green-600'}`} />
-                <span className="text-xs font-black uppercase tracking-[0.2em] opacity-60">AI Recommendation</span>
+                <span className="text-xs font-black uppercase tracking-[0.2em] opacity-60">{t('dashboard.recommendation.label')}</span>
               </div>
               <h3 className={`text-3xl font-black mb-3 ${recommendation?.recommendation === 'WAIT' ? 'text-blue-900' : 'text-green-900'}`}>
-                {recommendation?.recommendation}
+                {recommendation?.recommendation === 'WAIT' ? t('dashboard.recommendation.wait') : t('dashboard.recommendation.sell_now')}
               </h3>
               <p className="text-gray-700 font-medium leading-relaxed mb-6">
                 {recommendation?.reasoning}
               </p>
               <div className="pt-6 border-t border-dashed border-gray-200">
                 <div className="flex justify-between items-center">
-                   <span className="text-sm font-bold text-gray-500">ML Confidence Score</span>
+                   <span className="text-sm font-bold text-gray-500">{t('dashboard.recommendation.confidence')}</span>
                    <span className="text-lg font-black text-gray-800">{recommendation?.confidence}%</span>
                 </div>
                 <div className="w-full bg-gray-200 h-2 rounded-full mt-2 overflow-hidden">
@@ -299,8 +298,8 @@ export default function Dashboard() {
           {/* Price Chart */}
           <div className="lg:col-span-3 bg-white rounded-3xl p-8 border border-green-100 shadow-sm">
              <h3 className="text-lg font-black text-gray-800 mb-8 flex items-center justify-between">
-                <span>Price Trend & Forecast</span>
-                <span className="text-xs bg-gray-100 px-3 py-1 rounded-full font-bold text-gray-500 uppercase tracking-widest">30 Day Window</span>
+                <span>{t('dashboard.chart.title')}</span>
+                <span className="text-xs bg-gray-100 px-3 py-1 rounded-full font-bold text-gray-500 uppercase tracking-widest">{t('dashboard.chart.window')}</span>
              </h3>
              <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -342,11 +341,11 @@ export default function Dashboard() {
         {/* Demand Section */}
         <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <h3 className="text-lg font-black text-gray-800 uppercase tracking-widest">7-Day Demand Heatmap</h3>
+            <h3 className="text-lg font-black text-gray-800 uppercase tracking-widest">{t('dashboard.heatmap.title')}</h3>
             <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-red-500 rounded-sm"></span> High</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-yellow-500 rounded-sm"></span> Medium</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-blue-500 rounded-sm"></span> Low</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-red-500 rounded-sm"></span> {t('dashboard.heatmap.high')}</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-yellow-500 rounded-sm"></span> {t('dashboard.heatmap.medium')}</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-blue-500 rounded-sm"></span> {t('dashboard.heatmap.low')}</span>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -360,7 +359,7 @@ export default function Dashboard() {
                   <div className={`absolute inset-0 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all p-2 ${
                     level === 'HIGH' ? 'border-red-200' : level === 'MEDIUM' ? 'border-yellow-200' : 'border-blue-200'
                   } group-hover:bg-transparent bg-white group-hover:border-transparent`}>
-                     <span className="text-[10px] font-black text-gray-400 mb-1">DAY {i+1}</span>
+                     <span className="text-[10px] font-black text-gray-400 mb-1">{t('dashboard.heatmap.day')} {i+1}</span>
                      <span className={`text-xs font-black ${
                        level === 'HIGH' ? 'text-red-600' : level === 'MEDIUM' ? 'text-yellow-600' : 'text-blue-600'
                      }`}>{level}</span>
@@ -447,10 +446,10 @@ export default function Dashboard() {
                     <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100">
                        <div className="flex items-center gap-4">
                           <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center font-black text-green-600">
-                             {trade.crop[0]}
+                             {t(`dashboard.crops.${trade.crop.toLowerCase()}`).charAt(0)}
                           </div>
                           <div>
-                             <p className="text-sm font-black text-gray-800">{trade.crop} — {trade.vol}</p>
+                             <p className="text-sm font-black text-gray-800">{t(`dashboard.crops.${trade.crop.toLowerCase()}`)} — {trade.vol}</p>
                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{trade.mandi} Mandi • {trade.time}</p>
                           </div>
                        </div>
