@@ -184,12 +184,11 @@ export default function Dashboard() {
                <div className="absolute top-1/2 right-4 -translate-y-1/2 text-green-600 pointer-events-none text-xs font-black">
                  ▼
                </div>
-             </div>
-          </div>
-        </div>
-        </div>
+              </div>
+           </div>
+         </div>
 
-        {error ? (
+         {error ? (
           <div className="bg-white rounded-3xl p-12 border border-red-100 shadow-sm text-center max-w-2xl mx-auto my-12 animate-in fade-in duration-500">
             <p className="text-6xl mb-6">⚠️</p>
             <h2 className="text-2xl font-black text-red-800 mb-4">Data Unavailable</h2>
