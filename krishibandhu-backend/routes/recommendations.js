@@ -16,6 +16,7 @@ router.get('/:crop', async (req, res) => {
 
   try {
     const mlResult = await callPythonModel({
+      crop: targetCrop,
       history: data.history,
       current: data.current
     });

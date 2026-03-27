@@ -33,6 +33,14 @@ class PricePredictionModel:
             coeffs = np.polyfit(x, y, 1)
             self.trend_coefficient = coeffs[0]
 
+            # R-squared calculation for model fit quality
+            p = np.poly1d(coeffs)
+            y_fit = p(x)
+            y_mean = np.mean(y)
+            ssr = np.sum((y_fit - y)**2)
+            sst = np.sum((y - y_mean)**2)
+            self.r_squared = 1 - (ssr / sst) if sst != 0 else 1.0
+
             # Volatility calculation
             returns = np.diff(prices) / prices[:-1]
             self.volatility = np.std(returns) * 100
@@ -84,13 +92,28 @@ class PricePredictionModel:
 
         max_future_price = max(forecast)
         price_increase_pct = ((max_future_price - current_price) / current_price) * 100
-
         days_to_wait = int(np.argmax(forecast)) + 1
+
+        # Dynamic confidence based on:
+        # 1. R-Squared (model fit quality)
+        # 2. Volatility (market stability)
+        # 3. Strength of trend (price movement)
+        
+        base_confidence = 70 + (self.r_squared * 20)  # Range 70-90 based on model fit
+        vol_impact = self.volatility * 1.2
+        confidence = base_confidence - vol_impact
+
+        # Boost if expecting strong growth
+        if price_increase_pct > 6:
+            confidence += 5
+        
+        # Final rounding for a realistic look
+        final_confidence = round(max(45, min(97, confidence)), 1)
 
         if price_increase_pct > 8 and self.volatility < 3:
             return {
                 'action': 'WAIT',
-                'confidence': 85,
+                'confidence': final_confidence,
                 'reasoning': f'Strong price increase expected ({price_increase_pct:.1f}%)',
                 'expected_price': max_future_price,
                 'days_to_wait': days_to_wait
@@ -99,7 +122,7 @@ class PricePredictionModel:
         elif price_increase_pct > 4 and self.volatility < 3.5:
             return {
                 'action': 'WAIT',
-                'confidence': 70,
+                'confidence': final_confidence,
                 'reasoning': f'Moderate increase expected ({price_increase_pct:.1f}%)',
                 'expected_price': forecast[min(1, len(forecast)-1)],
                 'days_to_wait': 2
@@ -108,7 +131,7 @@ class PricePredictionModel:
         elif self.volatility > 4.5:
             return {
                 'action': 'SELL NOW',
-                'confidence': 80,
+                'confidence': final_confidence,
                 'reasoning': f'High volatility ({self.volatility:.1f}%). Minimize risk.',
                 'expected_price': current_price,
                 'days_to_wait': 0
@@ -117,7 +140,7 @@ class PricePredictionModel:
         else:
             return {
                 'action': 'SELL NOW',
-                'confidence': 75,
+                'confidence': final_confidence,
                 'reasoning': 'Fair price with stable market',
                 'expected_price': current_price,
                 'days_to_wait': 0
