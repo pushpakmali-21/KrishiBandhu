@@ -55,6 +55,11 @@ export default function Dashboard() {
   const [weatherData, setWeatherData] = useState<any>(null);
   const [currentTab, setCurrentTab] = useState<'insights' | 'marketplace' | 'mandi'>('insights');
 
+  // Connect Modal State
+  const [connectBuyer, setConnectBuyer] = useState<any>(null);
+  const [connectForm, setConnectForm] = useState({ crop: 'wheat', quantity: '', message: '' });
+  const [connectStatus, setConnectStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
+
   const cropGroups = [
     { key: 'grains', items: ['wheat', 'jowar', 'rice'] },
     { key: 'fibres', items: ['cotton', 'jute'] },
@@ -427,7 +432,10 @@ export default function Dashboard() {
                         {buyer.price}
                       </p>
                     </div>
-                    <button className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg group-hover:bg-green-600 transition-colors">
+                    <button
+                      onClick={() => setConnectBuyer(buyer)}
+                      className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg group-hover:bg-green-600 transition-colors"
+                    >
                       {t('marketplace.connect')}
                     </button>
                   </div>
@@ -651,6 +659,123 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Connect Modal */}
+      {connectBuyer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            {connectStatus === 'sent' ? (
+              <div className="p-12 text-center">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-4xl">✅</span>
+                </div>
+                <h3 className="text-2xl font-black text-green-800 mb-2">{t('connect_modal.success_title')}</h3>
+                <p className="text-gray-600 font-medium mb-8">
+                  {t('connect_modal.success_desc').replace('{{name}}', connectBuyer.name)}
+                </p>
+                <button
+                  onClick={() => {
+                    setConnectBuyer(null);
+                    setConnectStatus('idle');
+                    setConnectForm({ crop: 'wheat', quantity: '', message: '' });
+                  }}
+                  className="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-green-200 hover:bg-green-700 transition-all"
+                >
+                  {t('connect_modal.done')}
+                </button>
+              </div>
+            ) : (
+              <div className="p-8">
+                <div className="flex justify-between items-start mb-6 border-b border-gray-100 pb-6">
+                  <div>
+                    <h3 className="text-2xl font-black text-gray-900 mb-1">{t('connect_modal.title')}</h3>
+                    <p className="text-sm font-bold text-gray-500">{connectBuyer.name}</p>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${connectBuyer.trust > 90 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    Trust: {connectBuyer.trust}%
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-500 mb-2">{t('connect_modal.crop_label')}</label>
+                      <select
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all appearance-none"
+                        value={connectForm.crop}
+                        onChange={(e) => setConnectForm({ ...connectForm, crop: e.target.value })}
+                      >
+                        {cropGroups.flatMap(group => group.items).map(c => (
+                          <option key={c} value={c}>{t(`dashboard.crops.${c}`)}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-500 mb-2">{t('connect_modal.qty_label')}</label>
+                      <input
+                        type="number"
+                        placeholder={t('connect_modal.qty_placeholder')}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                        value={connectForm.quantity}
+                        onChange={(e) => setConnectForm({ ...connectForm, quantity: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('connect_modal.msg_label')}</label>
+                    <textarea
+                      placeholder={t('connect_modal.msg_placeholder')}
+                      rows={3}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all resize-none"
+                      value={connectForm.message}
+                      onChange={(e) => setConnectForm({ ...connectForm, message: e.target.value })}
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                  <button
+                    onClick={() => setConnectBuyer(null)}
+                    className="flex-1 py-4 rounded-2xl font-black text-gray-500 hover:bg-gray-50 transition-all"
+                    disabled={connectStatus === 'sending'}
+                  >
+                    {t('connect_modal.cancel')}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!connectForm.quantity) return; // Simple validation
+                      setConnectStatus('sending');
+                      try {
+                        await axios.post(`${API_BASE}/marketplace/connect`, {
+                          buyerName: connectBuyer.name,
+                          crop: connectForm.crop,
+                          quantity: connectForm.quantity,
+                          message: connectForm.message
+                        });
+                        setConnectStatus('sent');
+                      } catch (err) {
+                        console.error('Failed to connect:', err);
+                        setConnectStatus('idle');
+                      }
+                    }}
+                    disabled={connectStatus === 'sending' || !connectForm.quantity}
+                    className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-green-200 hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {connectStatus === 'sending' ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        {t('connect_modal.sending')}
+                      </>
+                    ) : (
+                      t('connect_modal.send')
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

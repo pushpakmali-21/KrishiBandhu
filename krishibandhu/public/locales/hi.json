@@ -1,166 +1,166 @@
 {
-    "nav":  {
-                "brand":  "कृषिबंधु",
-                "enter_dashboard":  "डैशबोर्ड में जाएं",
-                "live_mandi":  "लाइव मंडी फीड",
-                "nashik_hub":  "नाशिक हब"
-            },
-    "landing":  {
-                    "hero_title":  "स्मार्ट मूल्य खुफिया",
-                    "hero_title_highlight":  "किसानों के लिए",
-                    "hero_subtitle":  "AI-संचालित मूल्य पूर्वानुमान, बाजार मांग अंतर्दृष्टि और अपने खेत का मुनाफा अधिकतम करने के लिए स्मार्ट बिक्री सिफारिशें प्राप्त करें।",
-                    "start_now":  "अभी शुरू करें",
-                    "feature_price_title":  "मूल्य पूर्वानुमान",
-                    "feature_price_desc":  "AI ऐतिहासिक रुझानों के आधार पर 85% सटीकता के साथ अगले 7 दिनों के मंडी मूल्यों की भविष्यवाणी करता है।",
-                    "feature_rec_title":  "स्मार्ट सिफारिशें",
-                    "feature_rec_desc":  "बाजार की अस्थिरता से रीयल-टाइम में गणना की गई \"अभी बेचें\" या \"प्रतीक्षा करें\" की सलाह।",
-                    "feature_trust_title":  "भरोसेमंद बाजार",
-                    "feature_trust_desc":  "सत्यापित खरीदारों से जुड़ें और बिचौलियों के बिना तुरंत उचित मूल्य प्राप्त करें।",
-                    "footer":  "© 2026 कृषिबंधु। भारतीय किसानों की समृद्धि के लिए समर्पित।"
-                },
-    "dashboard":  {
-                      "title":  "कृषिबंधु",
-                      "subtitle":  "बाजार खुफिया",
-                      "tabs":  {
-                                   "dashboard":  "डैशबोर्ड",
-                                   "marketplace":  "बाजार",
-                                   "live_mandi":  "लाइव मंडी"
-                               },
-                      "crop_analysis":  "फसल विश्लेषण",
-                      "edit_inputs":  "इनपुट संपादित करें",
-                      "crop_groups": {
-                          "grains": "अनाज",
-                          "fibres": "फाइबर",
-                          "pulses": "दालें",
-                          "spices": "मसाले"
-                      },
-                      "crops":  {
-                                    "wheat":  "गेहूं",
-                                    "jowar":  "ज्वार",
-                                    "rice": "चावल",
-                                    "cotton":  "कपास",
-                                    "jute": "जूट",
-                                    "tur": "अरहर",
-                                    "redChilli": "लाल मिर्च"
-                                },
-                      "metrics":  {
-                                      "current_price":  "वर्तमान मूल्य",
-                                      "per_quintal":  "/क्विंटल",
-                                      "forecast_peak":  "7-दिन पूर्वानुमान शिखर",
-                                      "volatility":  "बाजार अस्थिरता",
-                                      "high_risk":  "उच्च जोखिम",
-                                      "low_risk":  "कम जोखिम"
-                                  },
-                      "recommendation":  {
-                                             "label":  "AI सिफारिश",
-                                             "confidence":  "ML विश्वास स्कोर",
-                                             "sell_now": "अभी बेचें",
-                                             "wait": "प्रतीक्षा करें"
-                                         },
-                      "chart":  {
-                                    "title":  "मूल्य प्रवृत्ति और पूर्वानुमान",
-                                    "window":  "30 दिन विंडो"
-                                },
-                      "heatmap":  {
-                                      "title":  "7-दिन मांग हीटमैप",
-                                      "high":  "उच्च",
-                                      "medium":  "मध्यम",
-                                      "low":  "कम",
-                                      "day":  "दिन"
-                                  },
-                      "loading":  "नवीनतम डेटा प्राप्त हो रहा है...",
-                      "error_title":  "डेटा उपलब्ध नहीं",
-                      "retry":  "पुनः प्रयास"
-                  },
-    "farmer_form":  {
-                        "title":  "किसान इनपुट",
-                        "quantity_label":  "फसल की मात्रा (क्विंटल)",
-                        "quantity_placeholder":  "जैसे 50",
-                        "quality_label":  "गुणवत्ता ग्रेड",
-                        "quality_a":  "ग्रेड A (प्रीमियम)",
-                        "quality_b":  "ग्रेड B (मानक)",
-                        "quality_c":  "ग्रेड C (साधारण)",
-                        "storage_label":  "भंडारण स्थिति",
-                        "storage_fresh":  "ताजा (अभी काटा गया)",
-                        "storage_stored":  "संग्रहीत",
-                        "days_label":  "भंडारण में दिन",
-                        "days_placeholder":  "जैसे 5",
-                        "urgency_label":  "बिक्री की तात्कालिकता",
-                        "urgency_immediate":  "तत्काल",
-                        "urgency_3days":  "3 दिनों के भीतर",
-                        "urgency_flexible":  "लचीला",
-                        "save":  "इनपुट सहेजें",
-                        "cancel":  "रद्द करें"
-                    },
-    "profit_calculator":  {
-                              "title":  "शुद्ध-लाभ कैलकुलेटर",
-                              "yield_label":  "अपेक्षित उपज (क्विंटल)",
-                              "yield_placeholder":  "जैसे 50",
-                              "distance_label":  "मंडी की दूरी (किमी)",
-                              "distance_placeholder":  "जैसे 25",
-                              "sell_today":  "आज बेचें",
-                              "wait_for_peak":  "शिखर की प्रतीक्षा करें",
-                              "net_profit":  "शुद्ध लाभ",
-                              "gross":  "सकल राजस्व",
-                              "freight":  "माल भाड़ा लागत",
-                              "risk_low":  "कम जोखिम",
-                              "risk_high":  "उच्च जोखिम",
-                              "close":  "बंद करें"
-                          },
-    "weather":  {
-                    "title":  "मौसम संदर्भ",
-                    "rain_alert":  "⚠️ {days} दिन में बारिश की उम्मीद। जल्दी बेचने पर विचार करें।",
-                    "good_weather":  "✅ आसमान साफ है। परिवहन के लिए अच्छी परिस्थितियां।",
-                    "humidity":  "आर्द्रता",
-                    "rainfall":  "वर्षा",
-                    "weather_context": "मौसम संदर्भ",
-                    "location_nashik": "नाशिक",
-                    "alert_title": "मौसम चेतावनी",
-                    "alert_desc": "भारी बारिश की उम्मीद। फसलों को सुरक्षित करें।"
-                },
-    "marketplace":  {
-                        "title":  "भरोसेमंद बाजार",
-                        "enam_badge":  "e-NAM द्वारा सत्यापित",
-                        "filter_crop":  "फसल से फ़िल्टर करें",
-                        "filter_trust":  "न्यूनतम भरोसा स्कोर",
-                        "filter_location":  "स्थान",
-                        "all":  "सभी",
-                        "initiate_trade":  "व्यापार शुरू करें",
-                        "call_buyer":  "खरीदार को कॉल करें",
-                        "transactions":  "लेनदेन",
-                        "kyc_verified":  "KYC सत्यापित",
-                        "trust_score":  "भरोसा स्कोर",
-                        "sms_title":  "📱 SMS फॉलबैक — स्मार्टफोन नहीं? कोई बात नहीं।",
-                        "sms_subtitle":  "बिना स्मार्टफोन वाले किसानों को SMS के जरिए मुख्य सलाह मिलती है:",
-                        "sms_sample":  "कृषिबंधु: गेहूं मूल्य ₹2,150। AI कहता है प्रतीक्षा करें — 7 दिनों में ₹2,340 की उम्मीद। जानकारी के लिए HELP लिखें।",
-                        "connect":  "संपर्क करें",
-                        "filter_all_locations":  "सभी स्थान",
-                        "filter_trust_score":  "विश्वास स्कोर",
-                        "subtitle": "किसानों से सीधे जुड़ें और खोजें"
-                    },
-    "voice":  {
-                  "start":  "बोलने के लिए टैप करें",
-                  "listening":  "सुन रहा हूं...",
-                  "not_supported":  "इस ब्राउज़र में वॉयस समर्थित नहीं है",
-                  "reading":  "सिफारिश पढ़ रहा हूं..."
-              },
-    "volatility_modal":  {
-                             "title":  "बाजार अस्थिरता विवरण",
-                             "historical":  "ऐतिहासिक अस्थिरता",
-                             "risk_factors":  "प्रमुख जोखिम कारक",
-                             "mitigation":  "शमन रणनीति",
-                             "close":  "बंद करें"
-                         },
-    "live_mandi":  {
-                       "title":  "लाइव मंडी फीड",
-                       "recent_trades":  "हाल के व्यापार",
-                       "nearby_mandis":  "पास की मंडी के मूल्य",
-                       "crop":  "फसल",
-                       "price":  "मूल्य",
-                       "volume":  "मात्रा",
-                       "time":  "समय",
-                       "mandi":  "मंडी"
-                   },
+    "nav": {
+        "brand": "कृषिबंधु",
+        "enter_dashboard": "डैशबोर्ड में जाएं",
+        "live_mandi": "लाइव मंडी फीड",
+        "nashik_hub": "नाशिक हब"
+    },
+    "landing": {
+        "hero_title": "स्मार्ट मूल्य खुफिया",
+        "hero_title_highlight": "किसानों के लिए",
+        "hero_subtitle": "AI-संचालित मूल्य पूर्वानुमान, बाजार मांग अंतर्दृष्टि और अपने खेत का मुनाफा अधिकतम करने के लिए स्मार्ट बिक्री सिफारिशें प्राप्त करें।",
+        "start_now": "अभी शुरू करें",
+        "feature_price_title": "मूल्य पूर्वानुमान",
+        "feature_price_desc": "AI ऐतिहासिक रुझानों के आधार पर 85% सटीकता के साथ अगले 7 दिनों के मंडी मूल्यों की भविष्यवाणी करता है।",
+        "feature_rec_title": "स्मार्ट सिफारिशें",
+        "feature_rec_desc": "बाजार की अस्थिरता से रीयल-टाइम में गणना की गई \"अभी बेचें\" या \"प्रतीक्षा करें\" की सलाह।",
+        "feature_trust_title": "भरोसेमंद बाजार",
+        "feature_trust_desc": "सत्यापित खरीदारों से जुड़ें और बिचौलियों के बिना तुरंत उचित मूल्य प्राप्त करें।",
+        "footer": "© 2026 कृषिबंधु। भारतीय किसानों की समृद्धि के लिए समर्पित।"
+    },
+    "dashboard": {
+        "title": "कृषिबंधु",
+        "subtitle": "बाजार खुफिया",
+        "tabs": {
+            "dashboard": "डैशबोर्ड",
+            "marketplace": "बाजार",
+            "live_mandi": "लाइव मंडी"
+        },
+        "crop_analysis": "फसल विश्लेषण",
+        "edit_inputs": "इनपुट संपादित करें",
+        "crop_groups": {
+            "grains": "अनाज",
+            "fibres": "फाइबर",
+            "pulses": "दालें",
+            "spices": "मसाले"
+        },
+        "crops": {
+            "wheat": "गेहूं",
+            "jowar": "ज्वार",
+            "rice": "चावल",
+            "cotton": "कपास",
+            "jute": "जूट",
+            "tur": "अरहर",
+            "redChilli": "लाल मिर्च"
+        },
+        "metrics": {
+            "current_price": "वर्तमान मूल्य",
+            "per_quintal": "/क्विंटल",
+            "forecast_peak": "7-दिन पूर्वानुमान शिखर",
+            "volatility": "बाजार अस्थिरता",
+            "high_risk": "उच्च जोखिम",
+            "low_risk": "कम जोखिम"
+        },
+        "recommendation": {
+            "label": "AI सिफारिश",
+            "confidence": "ML विश्वास स्कोर",
+            "sell_now": "अभी बेचें",
+            "wait": "प्रतीक्षा करें"
+        },
+        "chart": {
+            "title": "मूल्य प्रवृत्ति और पूर्वानुमान",
+            "window": "30 दिन विंडो"
+        },
+        "heatmap": {
+            "title": "7-दिन मांग हीटमैप",
+            "high": "उच्च",
+            "medium": "मध्यम",
+            "low": "कम",
+            "day": "दिन"
+        },
+        "loading": "नवीनतम डेटा प्राप्त हो रहा है...",
+        "error_title": "डेटा उपलब्ध नहीं",
+        "retry": "पुनः प्रयास"
+    },
+    "farmer_form": {
+        "title": "किसान इनपुट",
+        "quantity_label": "फसल की मात्रा (क्विंटल)",
+        "quantity_placeholder": "जैसे 50",
+        "quality_label": "गुणवत्ता ग्रेड",
+        "quality_a": "ग्रेड A (प्रीमियम)",
+        "quality_b": "ग्रेड B (मानक)",
+        "quality_c": "ग्रेड C (साधारण)",
+        "storage_label": "भंडारण स्थिति",
+        "storage_fresh": "ताजा (अभी काटा गया)",
+        "storage_stored": "संग्रहीत",
+        "days_label": "भंडारण में दिन",
+        "days_placeholder": "जैसे 5",
+        "urgency_label": "बिक्री की तात्कालिकता",
+        "urgency_immediate": "तत्काल",
+        "urgency_3days": "3 दिनों के भीतर",
+        "urgency_flexible": "लचीला",
+        "save": "इनपुट सहेजें",
+        "cancel": "रद्द करें"
+    },
+    "profit_calculator": {
+        "title": "शुद्ध-लाभ कैलकुलेटर",
+        "yield_label": "अपेक्षित उपज (क्विंटल)",
+        "yield_placeholder": "जैसे 50",
+        "distance_label": "मंडी की दूरी (किमी)",
+        "distance_placeholder": "जैसे 25",
+        "sell_today": "आज बेचें",
+        "wait_for_peak": "शिखर की प्रतीक्षा करें",
+        "net_profit": "शुद्ध लाभ",
+        "gross": "सकल राजस्व",
+        "freight": "माल भाड़ा लागत",
+        "risk_low": "कम जोखिम",
+        "risk_high": "उच्च जोखिम",
+        "close": "बंद करें"
+    },
+    "weather": {
+        "title": "मौसम संदर्भ",
+        "rain_alert": "⚠️ {days} दिन में बारिश की उम्मीद। जल्दी बेचने पर विचार करें।",
+        "good_weather": "✅ आसमान साफ है। परिवहन के लिए अच्छी परिस्थितियां।",
+        "humidity": "आर्द्रता",
+        "rainfall": "वर्षा",
+        "weather_context": "मौसम संदर्भ",
+        "location_nashik": "नाशिक",
+        "alert_title": "मौसम चेतावनी",
+        "alert_desc": "भारी बारिश की उम्मीद। फसलों को सुरक्षित करें।"
+    },
+    "marketplace": {
+        "title": "भरोसेमंद बाजार",
+        "enam_badge": "e-NAM द्वारा सत्यापित",
+        "filter_crop": "फसल से फ़िल्टर करें",
+        "filter_trust": "न्यूनतम भरोसा स्कोर",
+        "filter_location": "स्थान",
+        "all": "सभी",
+        "initiate_trade": "व्यापार शुरू करें",
+        "call_buyer": "खरीदार को कॉल करें",
+        "transactions": "लेनदेन",
+        "kyc_verified": "KYC सत्यापित",
+        "trust_score": "भरोसा स्कोर",
+        "sms_title": "📱 SMS फॉलबैक — स्मार्टफोन नहीं? कोई बात नहीं।",
+        "sms_subtitle": "बिना स्मार्टफोन वाले किसानों को SMS के जरिए मुख्य सलाह मिलती है:",
+        "sms_sample": "कृषिबंधु: गेहूं मूल्य ₹2,150। AI कहता है प्रतीक्षा करें — 7 दिनों में ₹2,340 की उम्मीद। जानकारी के लिए HELP लिखें।",
+        "connect": "संपर्क करें",
+        "filter_all_locations": "सभी स्थान",
+        "filter_trust_score": "विश्वास स्कोर",
+        "subtitle": "किसानों से सीधे जुड़ें और खोजें"
+    },
+    "voice": {
+        "start": "बोलने के लिए टैप करें",
+        "listening": "सुन रहा हूं...",
+        "not_supported": "इस ब्राउज़र में वॉयस समर्थित नहीं है",
+        "reading": "सिफारिश पढ़ रहा हूं..."
+    },
+    "volatility_modal": {
+        "title": "बाजार अस्थिरता विवरण",
+        "historical": "ऐतिहासिक अस्थिरता",
+        "risk_factors": "प्रमुख जोखिम कारक",
+        "mitigation": "शमन रणनीति",
+        "close": "बंद करें"
+    },
+    "live_mandi": {
+        "title": "लाइव मंडी फीड",
+        "recent_trades": "हाल के व्यापार",
+        "nearby_mandis": "पास की मंडी के मूल्य",
+        "crop": "फसल",
+        "price": "मूल्य",
+        "volume": "मात्रा",
+        "time": "समय",
+        "mandi": "मंडी"
+    },
     "tabs": {
         "insights": "अंतर्दृष्टि",
         "marketplace": "बाज़ार",
@@ -172,5 +172,19 @@
     },
     "mandi": {
         "live_trades": "लाइव व्यापार"
+    },
+    "connect_modal": {
+        "title": "क्रेता से जुड़ें",
+        "crop_label": "फसल",
+        "qty_label": "मात्रा (क्विंटल)",
+        "qty_placeholder": "उदा. 20",
+        "msg_label": "संदेश (वैकल्पिक)",
+        "msg_placeholder": "क्रेता के लिए कोई भी नोट जोड़ें...",
+        "send": "अनुरोध भेजें",
+        "sending": "भेज रहा है...",
+        "success_title": "अनुरोध भेजा गया!",
+        "success_desc": "आपका प्रस्ताव {{name}} के साथ साझा किया गया है। वे जल्द ही आपसे संपर्क करेंगे।",
+        "done": "पूर्ण",
+        "cancel": "रद्द करें"
     }
 }

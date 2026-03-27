@@ -19,6 +19,23 @@ app.use('/api/weather', weatherRoute);
 app.use('/api/recommendations', recommendationsRoute);
 app.use('/api/trust', trustRoute);
 
+// Mock Marketplace Connect Route
+app.post('/api/marketplace/connect', (req, res) => {
+  const { buyerName, crop, quantity, message } = req.body;
+  if (!buyerName || !crop || !quantity) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+
+  // Simulate processing time
+  setTimeout(() => {
+    res.json({
+      success: true,
+      requestId: `REQ-${Math.floor(Math.random() * 10000)}`,
+      message: `Request received. ${buyerName} will contact you.`
+    });
+  }, 1000);
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({

@@ -1,166 +1,166 @@
 {
-    "nav":  {
-                "brand":  "कृषिबंधु",
-                "enter_dashboard":  "डॅशबोर्डमध्ये जा",
-                "live_mandi":  "थेट मंडी फीड",
-                "nashik_hub":  "नाशिक हब"
-            },
-    "landing":  {
-                    "hero_title":  "स्मार्ट किंमत बुद्धिमत्ता",
-                    "hero_title_highlight":  "शेतकऱ्यांसाठी",
-                    "hero_subtitle":  "AI-चालित किंमत अंदाज, बाजार मागणी अंतर्दृष्टी आणि आपल्या शेताचा नफा जास्तीत जास्त करण्यासाठी स्मार्ट विक्री शिफारसी मिळवा।",
-                    "start_now":  "आता सुरू करा",
-                    "feature_price_title":  "किंमत अंदाज",
-                    "feature_price_desc":  "AI ऐतिहासिक ट्रेंडच्या आधारावर 85% अचूकतेसह पुढील 7 दिवसांच्या मंडी किंमतींचा अंदाज लावतो.",
-                    "feature_rec_title":  "स्मार्ट शिफारसी",
-                    "feature_rec_desc":  "बाजार अस्थिरतेवरून रिअल-टाइममध्ये गणना केलेल्या \"आत्ता विका\" किंवा \"थांबा\" सल्ला.",
-                    "feature_trust_title":  "विश्वसनीय बाजार",
-                    "feature_trust_desc":  "सत्यापित खरेदीदारांशी कनेक्ट व्हा आणि दलालांशिवाय लगेच योग्य किंमत मिळवा.",
-                    "footer":  "© 2026 कृषिबंधु। भारतीय शेतकऱ्यांच्या समृद्धीसाठी समर्पित."
-                },
-    "dashboard":  {
-                      "title":  "कृषिबंधु",
-                      "subtitle":  "बाजार बुद्धिमत्ता",
-                      "tabs":  {
-                                   "dashboard":  "डॅशबोर्ड",
-                                   "marketplace":  "बाजार",
-                                   "live_mandi":  "थेट मंडी"
-                               },
-                      "crop_analysis":  "पीक विश्लेषण",
-                      "edit_inputs":  "इनपुट संपादित करा",
-                      "crop_groups": {
-                          "grains": "धान्ये",
-                          "fibres": "तंतू",
-                          "pulses": "कडधान्ये",
-                          "spices": "मसाले"
-                      },
-                      "crops":  {
-                                    "wheat":  "गहू",
-                                    "jowar":  "ज्वारी",
-                                    "rice": "तांदूळ",
-                                    "cotton":  "कापूस",
-                                    "jute": "ताग",
-                                    "tur": "तूर",
-                                    "redChilli": "लाल मिरची"
-                                },
-                      "metrics":  {
-                                      "current_price":  "सध्याची किंमत",
-                                      "per_quintal":  "/क्विंटल",
-                                      "forecast_peak":  "7-दिवस अंदाज शिखर",
-                                      "volatility":  "बाजार अस्थिरता",
-                                      "high_risk":  "उच्च जोखीम",
-                                      "low_risk":  "कमी जोखीम"
-                                  },
-                      "recommendation":  {
-                                             "label":  "AI शिफारस",
-                                             "confidence":  "ML विश्वास स्कोर",
-                                             "sell_now": "आत्ता विका",
-                                             "wait": "थांबा"
-                                         },
-                      "chart":  {
-                                    "title":  "किंमत ट्रेंड आणि अंदाज",
-                                    "window":  "30 दिवस विंडो"
-                                },
-                      "heatmap":  {
-                                      "title":  "7-दिवस मागणी हीटमॅप",
-                                      "high":  "उच्च",
-                                      "medium":  "मध्यम",
-                                      "low":  "कमी",
-                                      "day":  "दिवस"
-                                  },
-                      "loading":  "नवीनतम डेटा मिळवत आहे...",
-                      "error_title":  "डेटा उपलब्ध नाही",
-                      "retry":  "पुन्हा प्रयत्न करा"
-                  },
-    "farmer_form":  {
-                        "title":  "शेतकरी इनपुट",
-                        "quantity_label":  "पीक प्रमाण (क्विंटल)",
-                        "quantity_placeholder":  "उदा. 50",
-                        "quality_label":  "गुणवत्ता श्रेणी",
-                        "quality_a":  "श्रेणी A (प्रीमियम)",
-                        "quality_b":  "श्रेणी B (मानक)",
-                        "quality_c":  "श्रेणी C (साधारण)",
-                        "storage_label":  "साठवण स्थिती",
-                        "storage_fresh":  "ताजे (नुकतेच कापणी केलेले)",
-                        "storage_stored":  "साठवलेले",
-                        "days_label":  "साठवणीचे दिवस",
-                        "days_placeholder":  "उदा. 5",
-                        "urgency_label":  "विक्रीची तातडी",
-                        "urgency_immediate":  "तातडीने",
-                        "urgency_3days":  "3 दिवसांत",
-                        "urgency_flexible":  "लवचिक",
-                        "save":  "इनपुट जतन करा",
-                        "cancel":  "रद्द करा"
-                    },
-    "profit_calculator":  {
-                              "title":  "निव्वळ-नफा कॅल्क्युलेटर",
-                              "yield_label":  "अपेक्षित उत्पादन (क्विंटल)",
-                              "yield_placeholder":  "उदा. 50",
-                              "distance_label":  "मंडीचे अंतर (किमी)",
-                              "distance_placeholder":  "उदा. 25",
-                              "sell_today":  "आज विका",
-                              "wait_for_peak":  "शिखराची वाट पहा",
-                              "net_profit":  "निव्वळ नफा",
-                              "gross":  "एकूण महसूल",
-                              "freight":  "मालवाहतूक खर्च",
-                              "risk_low":  "कमी जोखीम",
-                              "risk_high":  "उच्च जोखीम",
-                              "close":  "बंद करा"
-                          },
-    "weather":  {
-                    "title":  "हवामान संदर्भ",
-                    "rain_alert":  "⚠️ {days} दिवसात पाऊस अपेक्षित. लवकर विकण्याचा विचार करा.",
-                    "good_weather":  "✅ आकाश स्वच्छ आहे. वाहतुकीसाठी चांगल्या परिस्थिती.",
-                    "humidity":  "आर्द्रता",
-                    "rainfall":  "पाऊस",
-                    "weather_context": "हवामान संदर्भ",
-                    "location_nashik": "नाशिक",
-                    "alert_title": "हवामान इशारा",
-                    "alert_desc": "मुसळधार पाऊस अपेक्षित. पिकांचे संरक्षण करा."
-                },
-    "marketplace":  {
-                        "title":  "विश्वसनीय बाजार",
-                        "enam_badge":  "e-NAM द्वारे सत्यापित",
-                        "filter_crop":  "पिकानुसार फिल्टर करा",
-                        "filter_trust":  "किमान विश्वास स्कोर",
-                        "filter_location":  "स्थान",
-                        "all":  "सर्व",
-                        "initiate_trade":  "व्यवहार सुरू करा",
-                        "call_buyer":  "खरेदीदाराला कॉल करा",
-                        "transactions":  "व्यवहार",
-                        "kyc_verified":  "KYC सत्यापित",
-                        "trust_score":  "विश्वास स्कोर",
-                        "sms_title":  "📱 SMS फॉलबॅक — स्मार्टफोन नाही? काळजी नाही.",
-                        "sms_subtitle":  "स्मार्टफोन नसलेल्या शेतकऱ्यांना SMS द्वारे मुख्य सल्ला मिळतो:",
-                        "sms_sample":  "कृषिबंधु: गहू किंमत ₹2,150. AI म्हणतो थांबा — 7 दिवसात ₹2,340 अपेक्षित. माहितीसाठी HELP लिहा.",
-                        "connect":  "संपर्क साधा",
-                        "filter_all_locations":  "सर्व ठिकाणे",
-                        "filter_trust_score":  "विश्वासार्हता",
-                        "subtitle": "शेतकऱ्यांशी थेट संपर्क साधा आणि शोधा"
-                    },
-    "voice":  {
-                  "start":  "बोलण्यासाठी टॅप करा",
-                  "listening":  "ऐकत आहे...",
-                  "not_supported":  "या ब्राउझरमध्ये व्हॉइस समर्थित नाही",
-                  "reading":  "शिफारस वाचत आहे..."
-              },
-    "volatility_modal":  {
-                             "title":  "बाजार अस्थिरता तपशील",
-                             "historical":  "ऐतिहासिक अस्थिरता",
-                             "risk_factors":  "प्रमुख जोखीम घटक",
-                             "mitigation":  "शमन धोरण",
-                             "close":  "बंद करा"
-                         },
-    "live_mandi":  {
-                       "title":  "थेट मंडी फीड",
-                       "recent_trades":  "अलीकडील व्यापार",
-                       "nearby_mandis":  "जवळच्या मंडी किंमती",
-                       "crop":  "पीक",
-                       "price":  "किंमत",
-                       "volume":  "प्रमाण",
-                       "time":  "वेळ",
-                       "mandi":  "मंडी"
-                   },
+    "nav": {
+        "brand": "कृषिबंधु",
+        "enter_dashboard": "डॅशबोर्डमध्ये जा",
+        "live_mandi": "थेट मंडी फीड",
+        "nashik_hub": "नाशिक हब"
+    },
+    "landing": {
+        "hero_title": "स्मार्ट किंमत बुद्धिमत्ता",
+        "hero_title_highlight": "शेतकऱ्यांसाठी",
+        "hero_subtitle": "AI-चालित किंमत अंदाज, बाजार मागणी अंतर्दृष्टी आणि आपल्या शेताचा नफा जास्तीत जास्त करण्यासाठी स्मार्ट विक्री शिफारसी मिळवा।",
+        "start_now": "आता सुरू करा",
+        "feature_price_title": "किंमत अंदाज",
+        "feature_price_desc": "AI ऐतिहासिक ट्रेंडच्या आधारावर 85% अचूकतेसह पुढील 7 दिवसांच्या मंडी किंमतींचा अंदाज लावतो.",
+        "feature_rec_title": "स्मार्ट शिफारसी",
+        "feature_rec_desc": "बाजार अस्थिरतेवरून रिअल-टाइममध्ये गणना केलेल्या \"आत्ता विका\" किंवा \"थांबा\" सल्ला.",
+        "feature_trust_title": "विश्वसनीय बाजार",
+        "feature_trust_desc": "सत्यापित खरेदीदारांशी कनेक्ट व्हा आणि दलालांशिवाय लगेच योग्य किंमत मिळवा.",
+        "footer": "© 2026 कृषिबंधु। भारतीय शेतकऱ्यांच्या समृद्धीसाठी समर्पित."
+    },
+    "dashboard": {
+        "title": "कृषिबंधु",
+        "subtitle": "बाजार बुद्धिमत्ता",
+        "tabs": {
+            "dashboard": "डॅशबोर्ड",
+            "marketplace": "बाजार",
+            "live_mandi": "थेट मंडी"
+        },
+        "crop_analysis": "पीक विश्लेषण",
+        "edit_inputs": "इनपुट संपादित करा",
+        "crop_groups": {
+            "grains": "धान्ये",
+            "fibres": "तंतू",
+            "pulses": "कडधान्ये",
+            "spices": "मसाले"
+        },
+        "crops": {
+            "wheat": "गहू",
+            "jowar": "ज्वारी",
+            "rice": "तांदूळ",
+            "cotton": "कापूस",
+            "jute": "ताग",
+            "tur": "तूर",
+            "redChilli": "लाल मिरची"
+        },
+        "metrics": {
+            "current_price": "सध्याची किंमत",
+            "per_quintal": "/क्विंटल",
+            "forecast_peak": "7-दिवस अंदाज शिखर",
+            "volatility": "बाजार अस्थिरता",
+            "high_risk": "उच्च जोखीम",
+            "low_risk": "कमी जोखीम"
+        },
+        "recommendation": {
+            "label": "AI शिफारस",
+            "confidence": "ML विश्वास स्कोर",
+            "sell_now": "आत्ता विका",
+            "wait": "थांबा"
+        },
+        "chart": {
+            "title": "किंमत ट्रेंड आणि अंदाज",
+            "window": "30 दिवस विंडो"
+        },
+        "heatmap": {
+            "title": "7-दिवस मागणी हीटमॅप",
+            "high": "उच्च",
+            "medium": "मध्यम",
+            "low": "कमी",
+            "day": "दिवस"
+        },
+        "loading": "नवीनतम डेटा मिळवत आहे...",
+        "error_title": "डेटा उपलब्ध नाही",
+        "retry": "पुन्हा प्रयत्न करा"
+    },
+    "farmer_form": {
+        "title": "शेतकरी इनपुट",
+        "quantity_label": "पीक प्रमाण (क्विंटल)",
+        "quantity_placeholder": "उदा. 50",
+        "quality_label": "गुणवत्ता श्रेणी",
+        "quality_a": "श्रेणी A (प्रीमियम)",
+        "quality_b": "श्रेणी B (मानक)",
+        "quality_c": "श्रेणी C (साधारण)",
+        "storage_label": "साठवण स्थिती",
+        "storage_fresh": "ताजे (नुकतेच कापणी केलेले)",
+        "storage_stored": "साठवलेले",
+        "days_label": "साठवणीचे दिवस",
+        "days_placeholder": "उदा. 5",
+        "urgency_label": "विक्रीची तातडी",
+        "urgency_immediate": "तातडीने",
+        "urgency_3days": "3 दिवसांत",
+        "urgency_flexible": "लवचिक",
+        "save": "इनपुट जतन करा",
+        "cancel": "रद्द करा"
+    },
+    "profit_calculator": {
+        "title": "निव्वळ-नफा कॅल्क्युलेटर",
+        "yield_label": "अपेक्षित उत्पादन (क्विंटल)",
+        "yield_placeholder": "उदा. 50",
+        "distance_label": "मंडीचे अंतर (किमी)",
+        "distance_placeholder": "उदा. 25",
+        "sell_today": "आज विका",
+        "wait_for_peak": "शिखराची वाट पहा",
+        "net_profit": "निव्वळ नफा",
+        "gross": "एकूण महसूल",
+        "freight": "मालवाहतूक खर्च",
+        "risk_low": "कमी जोखीम",
+        "risk_high": "उच्च जोखीम",
+        "close": "बंद करा"
+    },
+    "weather": {
+        "title": "हवामान संदर्भ",
+        "rain_alert": "⚠️ {days} दिवसात पाऊस अपेक्षित. लवकर विकण्याचा विचार करा.",
+        "good_weather": "✅ आकाश स्वच्छ आहे. वाहतुकीसाठी चांगल्या परिस्थिती.",
+        "humidity": "आर्द्रता",
+        "rainfall": "पाऊस",
+        "weather_context": "हवामान संदर्भ",
+        "location_nashik": "नाशिक",
+        "alert_title": "हवामान इशारा",
+        "alert_desc": "मुसळधार पाऊस अपेक्षित. पिकांचे संरक्षण करा."
+    },
+    "marketplace": {
+        "title": "विश्वसनीय बाजार",
+        "enam_badge": "e-NAM द्वारे सत्यापित",
+        "filter_crop": "पिकानुसार फिल्टर करा",
+        "filter_trust": "किमान विश्वास स्कोर",
+        "filter_location": "स्थान",
+        "all": "सर्व",
+        "initiate_trade": "व्यवहार सुरू करा",
+        "call_buyer": "खरेदीदाराला कॉल करा",
+        "transactions": "व्यवहार",
+        "kyc_verified": "KYC सत्यापित",
+        "trust_score": "विश्वास स्कोर",
+        "sms_title": "📱 SMS फॉलबॅक — स्मार्टफोन नाही? काळजी नाही.",
+        "sms_subtitle": "स्मार्टफोन नसलेल्या शेतकऱ्यांना SMS द्वारे मुख्य सल्ला मिळतो:",
+        "sms_sample": "कृषिबंधु: गहू किंमत ₹2,150. AI म्हणतो थांबा — 7 दिवसात ₹2,340 अपेक्षित. माहितीसाठी HELP लिहा.",
+        "connect": "संपर्क साधा",
+        "filter_all_locations": "सर्व ठिकाणे",
+        "filter_trust_score": "विश्वासार्हता",
+        "subtitle": "शेतकऱ्यांशी थेट संपर्क साधा आणि शोधा"
+    },
+    "voice": {
+        "start": "बोलण्यासाठी टॅप करा",
+        "listening": "ऐकत आहे...",
+        "not_supported": "या ब्राउझरमध्ये व्हॉइस समर्थित नाही",
+        "reading": "शिफारस वाचत आहे..."
+    },
+    "volatility_modal": {
+        "title": "बाजार अस्थिरता तपशील",
+        "historical": "ऐतिहासिक अस्थिरता",
+        "risk_factors": "प्रमुख जोखीम घटक",
+        "mitigation": "शमन धोरण",
+        "close": "बंद करा"
+    },
+    "live_mandi": {
+        "title": "थेट मंडी फीड",
+        "recent_trades": "अलीकडील व्यापार",
+        "nearby_mandis": "जवळच्या मंडी किंमती",
+        "crop": "पीक",
+        "price": "किंमत",
+        "volume": "प्रमाण",
+        "time": "वेळ",
+        "mandi": "मंडी"
+    },
     "tabs": {
         "insights": "अंतर्दृष्टी",
         "marketplace": "बाजारपेठ",
@@ -172,5 +172,19 @@
     },
     "mandi": {
         "live_trades": "थेट व्यापार"
+    },
+    "connect_modal": {
+        "title": "खरेदीदाराशी संपर्क साधा",
+        "crop_label": "पीक",
+        "qty_label": "प्रमाण (क्विंटल)",
+        "qty_placeholder": "उदा. 20",
+        "msg_label": "संदेश (पर्यायी)",
+        "msg_placeholder": "खरेदीदारासाठी काहीही नोंद जोडा...",
+        "send": "विनंती पाठवा",
+        "sending": "पाठवत आहे...",
+        "success_title": "विनंती पाठवली!",
+        "success_desc": "तुमचा प्रस्ताव {{name}} सोबत शेअर केला गेला आहे. ते लवकरच तुमच्याशी संपर्क साधतील.",
+        "done": "पूर्ण झाले",
+        "cancel": "रद्द करा"
     }
 }
