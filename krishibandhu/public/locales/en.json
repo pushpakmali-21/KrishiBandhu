@@ -1,6 +1,7 @@
 {
     "nav": {
         "brand": "KrishiBandhu",
+        "login": "Login",
         "enter_dashboard": "Enter Dashboard",
         "live_mandi": "Live Mandi Feed",
         "nashik_hub": "Nashik Hub"
@@ -17,6 +18,15 @@
         "feature_trust_title": "Trusted Marketplace",
         "feature_trust_desc": "Connect with verified buyers and get fair prices instantly without middlemen.",
         "footer": "© 2026 KrishiBandhu. Dedicated to the Prosperity of Indian Farmers."
+    },
+    "login": {
+        "title": "Welcome Back",
+        "subtitle": "Login to access your personalized farming insights",
+        "phone_label": "Phone Number",
+        "phone_placeholder": "Enter your 10-digit number",
+        "get_otp": "Get OTP",
+        "enter_dashboard": "Enter Dashboard",
+        "start_now": "Start Now"
     },
     "dashboard": {
         "title": "KrishiBandhu",

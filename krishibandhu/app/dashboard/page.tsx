@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { Zap, TrendingUp, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams, useRouter } from 'next/navigation';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5001/api';
@@ -53,7 +54,22 @@ export default function Dashboard() {
   const [calcYield, setCalcYield] = useState('');
   const [calcDistance, setCalcDistance] = useState('');
   const [weatherData, setWeatherData] = useState<any>(null);
+  const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [currentTab, setCurrentTab] = useState<'insights' | 'marketplace' | 'mandi'>('insights');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(localStorage.getItem('kb_auth') === 'true');
+  }, []);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'marketplace' || tab === 'mandi' || tab === 'insights') {
+      setCurrentTab(tab as any);
+    }
+  }, [searchParams]);
 
   // Connect Modal State
   const [connectBuyer, setConnectBuyer] = useState<any>(null);
@@ -66,7 +82,6 @@ export default function Dashboard() {
     { key: 'pulses', items: ['tur'] },
     { key: 'spices', items: ['redChilli'] }
   ];
-  const { t } = useTranslation();
 
   useEffect(() => {
     fetchDashboardData();
@@ -433,10 +448,16 @@ export default function Dashboard() {
                       </p>
                     </div>
                     <button
-                      onClick={() => setConnectBuyer(buyer)}
+                      onClick={() => {
+                        if (isLoggedIn) {
+                          setConnectBuyer(buyer);
+                        } else {
+                          router.push('/login?redirect=/dashboard&tab=marketplace');
+                        }
+                      }}
                       className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg group-hover:bg-green-600 transition-colors"
                     >
-                      {t('marketplace.connect')}
+                      {isLoggedIn ? t('marketplace.connect') : '🔒 Login to Connect'}
                     </button>
                   </div>
                 </div>
@@ -747,6 +768,10 @@ export default function Dashboard() {
                   <button
                     onClick={async () => {
                       if (!connectForm.quantity) return; // Simple validation
+                      if (!isLoggedIn) {
+                        router.push('/login?redirect=/dashboard&tab=marketplace');
+                        return;
+                      }
                       setConnectStatus('sending');
                       try {
                         await axios.post(`${API_BASE}/marketplace/connect`, {
