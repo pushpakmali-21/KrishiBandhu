@@ -9,6 +9,8 @@ import { Zap, TrendingUp, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { VoiceProvider } from '../context/VoiceContext';
+import { VoiceAssistant } from '../components/VoiceAssistant';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5001/api';
 
@@ -84,36 +86,36 @@ export default function Dashboard() {
   ];
 
   useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [priceRes, recRes, weatherRes] = await Promise.all([
+          axios.get(`${API_BASE}/prices/${selectedCrop}`),
+          axios.get(`${API_BASE}/recommendations/${selectedCrop}`),
+          axios.get(`${API_BASE}/weather/forecast`)
+        ]);
+
+        setPriceData(priceRes.data);
+        setRecommendation({
+          recommendation: recRes.data.recommendation,
+          reasoning: recRes.data.reasoning,
+          confidence: recRes.data.confidence,
+          expectedPrice: recRes.data.expectedPrice,
+          daysToWait: recRes.data.daysToWait,
+        });
+        setWeatherData(weatherRes.data);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unable to reach the server.';
+        console.warn('API Error:', message);
+        setError(`Could not load market data: ${message}. Make sure the backend is running.`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDashboardData();
   }, [selectedCrop]);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const [priceRes, recRes, weatherRes] = await Promise.all([
-        axios.get(`${API_BASE}/prices/${selectedCrop}`),
-        axios.get(`${API_BASE}/recommendations/${selectedCrop}`),
-        axios.get(`${API_BASE}/weather/forecast`)
-      ]);
-
-      setPriceData(priceRes.data);
-      setRecommendation({
-        recommendation: recRes.data.recommendation,
-        reasoning: recRes.data.reasoning,
-        confidence: recRes.data.confidence,
-        expectedPrice: recRes.data.expectedPrice,
-        daysToWait: recRes.data.daysToWait,
-      });
-      setWeatherData(weatherRes.data);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unable to reach the server.';
-      console.warn('API Error:', message);
-      setError(`Could not load market data: ${message}. Make sure the backend is running.`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -127,9 +129,23 @@ export default function Dashboard() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 shadow-sm border-b border-green-100">
+    <VoiceProvider
+      selectedCrop={selectedCrop}
+      priceData={priceData}
+      recommendation={recommendation}
+      weatherData={weatherData}
+    >
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+        {/* Voice Assistant Components */}
+        <VoiceAssistant
+          selectedCrop={selectedCrop}
+          priceData={priceData}
+          recommendation={recommendation}
+          weatherData={weatherData}
+        />
+
+        {/* Header */}
+        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 shadow-sm border-b border-green-100">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-black text-green-800 tracking-tight" suppressHydrationWarning>{t('nav.brand')}</h1>
@@ -805,7 +821,8 @@ export default function Dashboard() {
         </div>
       )}
 
-    </div>
+      </div>
+    </VoiceProvider>
   );
 }
 

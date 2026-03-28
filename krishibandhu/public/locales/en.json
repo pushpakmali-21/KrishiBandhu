@@ -149,10 +149,24 @@
         "subtitle": "Discover and connect with farmers directly"
     },
     "voice": {
-        "start": "Tap to speak",
+        "say_something": "Say something...",
         "listening": "Listening...",
+        "processing": "Understanding your query...",
+        "speaking": "Playing response...",
         "not_supported": "Voice not supported in this browser",
-        "reading": "Reading recommendation..."
+        "microphone_denied": "Microphone permission was denied",
+        "responses": {
+            "price": "Today's {{crop}} price is ₹{{price}} per quintal",
+            "recommendation": "{{recommendation}} - {{reasoning}}. Confidence: {{confidence}}%",
+            "demand": "Demand forecast shows {{forecast}}",
+            "weather": "Temperature is {{temp}} degrees Celsius, {{condition}}",
+            "calculator": "Opening profit calculator. Please enter your yield and distance",
+            "help": "I can help you with prices, recommendations, weather, demand forecasts, and profit calculation"
+        },
+        "errors": {
+            "not_understood": "I did not understand. Please try again",
+            "no_speech": "No speech detected. Please try again"
+        }
     },
     "volatility_modal": {
         "title": "Market Volatility Detail",

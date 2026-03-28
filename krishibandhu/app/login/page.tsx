@@ -80,7 +80,7 @@ export default function LoginPage() {
                                             required
                                             value={phoneNumber}
                                             onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
-                                            className="block w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all outline-none text-lg tracking-wider"
+                                            className="block w-full pl-11 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all outline-none text-lg tracking-wider text-black"
                                             placeholder={t('login.phone_placeholder')}
                                         />
                                     </div>
@@ -121,7 +121,7 @@ export default function LoginPage() {
                                 </button>
 
                                 <p className="text-center text-sm text-gray-500">
-                                    Didn't receive OTP? <button type="button" onClick={() => setStep(1)} className="text-green-600 font-semibold hover:underline">Resend</button>
+                                    Didn&apos;t receive OTP? <button type="button" onClick={() => setStep(1)} className="text-green-600 font-semibold hover:underline">Resend</button>
                                 </p>
                             </form>
                         )}

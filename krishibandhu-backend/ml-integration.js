@@ -1,29 +1,46 @@
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const path = require('path');
 
 const fs = require('fs');
 
-function spawnPython(scriptPath) {
+function findPythonPath() {
   // Check virtual environment first (Windows and Unix paths)
   const venvPythonWin = path.join(__dirname, '.venv', 'Scripts', 'python.exe');
   const venvPythonUnix = path.join(__dirname, '.venv', 'bin', 'python');
 
   if (fs.existsSync(venvPythonWin)) {
-    return spawn(venvPythonWin, [scriptPath]);
-  } else if (fs.existsSync(venvPythonUnix)) {
-    return spawn(venvPythonUnix, [scriptPath]);
+    return venvPythonWin;
+  }
+  if (fs.existsSync(venvPythonUnix)) {
+    return venvPythonUnix;
   }
 
-  // Try python3 first (Linux/Mac), fall back to python (Windows)
+  // Try python3 first (avoids Windows 10+ store alias issue), then python
   for (const bin of ['python3', 'python']) {
     try {
-      const proc = spawn(bin, [scriptPath]);
-      return proc;
-    } catch {
-      // Continue to next binary
+      const result = spawnSync(bin, ['--version'], { 
+        timeout: 2000,
+        stdio: 'pipe',
+        windowsHide: true
+      });
+      if (result.status === 0) {
+        return bin;
+      }
+    } catch (e) {
+      console.warn(`Python check failed for '${bin}':`, e.message);
     }
   }
+
   throw new Error('No Python binary found (tried .venv, python3 and python)');
+}
+
+function spawnPython(scriptPath) {
+  const pythonPath = findPythonPath();
+  const proc = spawn(pythonPath, [scriptPath], {
+    windowsHide: true,
+    stdio: ['pipe', 'pipe', 'pipe']
+  });
+  return proc;
 }
 
 function callPythonModel(historicalData) {
@@ -37,7 +54,13 @@ function callPythonModel(historicalData) {
       console.error(e.message);
       return resolve({
         forecast: [2180, 2200, 2220, 2250, 2280, 2310, 2340],
-        recommendation: { action: 'SELL NOW (Fallback)', confidence: 50 }
+        recommendation: { 
+          action: 'SELL NOW (Fallback)', 
+          confidence: 50,
+          reasoning: 'ML service unavailable - using fallback analysis',
+          expected_price: 2250,
+          days_to_wait: 2
+        }
       });
     }
 
@@ -63,7 +86,13 @@ function callPythonModel(historicalData) {
       console.error(`Failed to start Python: ${err.message}`);
       resolve({
         forecast: [2180, 2200, 2220, 2250, 2280, 2310, 2340],
-        recommendation: { action: 'SELL NOW (Fallback)', confidence: 50 }
+        recommendation: { 
+          action: 'SELL NOW (Fallback)', 
+          confidence: 50,
+          reasoning: 'ML service unavailable - using fallback analysis',
+          expected_price: 2250,
+          days_to_wait: 2
+        }
       });
     });
 
@@ -74,7 +103,13 @@ function callPythonModel(historicalData) {
         // Fallback to dummy forecast if ML fails
         return resolve({
            forecast: [2180, 2200, 2220, 2250, 2280, 2310, 2340],
-           recommendation: { action: 'SELL NOW (Fallback)', confidence: 50 }
+           recommendation: { 
+             action: 'SELL NOW (Fallback)', 
+             confidence: 50,
+             reasoning: 'ML service unavailable - using fallback analysis',
+             expected_price: 2250,
+             days_to_wait: 2
+           }
         });
       }
       
