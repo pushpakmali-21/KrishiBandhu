@@ -18,6 +18,10 @@ export interface VoiceContextType {
 
 export const VoiceContext = createContext<VoiceContextType | undefined>(undefined);
 
+type VoicePriceData = Parameters<typeof useVoiceIntent>[1];
+type VoiceRecommendationData = Parameters<typeof useVoiceIntent>[2];
+type VoiceWeatherData = Parameters<typeof useVoiceIntent>[3];
+
 /**
  * VoiceProvider component - wraps Dashboard with voice functionality
  * Provides access to voice recognition, text-to-speech, and intent matching
@@ -25,9 +29,9 @@ export const VoiceContext = createContext<VoiceContextType | undefined>(undefine
 export const VoiceProvider: React.FC<{
   children: ReactNode;
   selectedCrop?: string;
-  priceData?: any;
-  recommendation?: any;
-  weatherData?: any;
+  priceData?: VoicePriceData;
+  recommendation?: VoiceRecommendationData;
+  weatherData?: VoiceWeatherData;
 }> = ({ 
   children, 
   selectedCrop = 'wheat',

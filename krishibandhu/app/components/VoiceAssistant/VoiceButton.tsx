@@ -4,13 +4,19 @@ import React from 'react';
 import { useVoice } from '../../context/VoiceContext';
 import { Mic, Square, Loader2 } from 'lucide-react';
 
+type SpeechRecognitionConstructor = new () => unknown;
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
+
 export const VoiceButton: React.FC = () => {
   const { isListening, isProcessing, language, startListening, stopListening } = useVoice();
 
   // Check browser support without state
   const SpeechRecognition =
     typeof window !== 'undefined'
-      ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+      ? (window as SpeechRecognitionWindow).SpeechRecognition || (window as SpeechRecognitionWindow).webkitSpeechRecognition
       : null;
 
   if (!SpeechRecognition) {

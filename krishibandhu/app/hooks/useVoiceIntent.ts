@@ -28,6 +28,44 @@ interface WeatherData {
   }>;
 }
 
+interface SpeechRecognitionResultLike {
+  isFinal: boolean;
+  0: {
+    transcript: string;
+  };
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: {
+    length: number;
+    [index: number]: SpeechRecognitionResultLike;
+  };
+}
+
+interface SpeechRecognitionErrorLike {
+  error: string;
+}
+
+interface SpeechRecognitionLike {
+  language: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((error: SpeechRecognitionErrorLike) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
+
 export const useVoiceIntent = (
   selectedCrop: string,
   priceData: PriceData | null,
@@ -53,7 +91,7 @@ export const useVoiceIntent = (
     return normalized;
   }, []);
 
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const synthRef = useRef<SpeechSynthesis>(
     typeof window !== 'undefined' ? window.speechSynthesis : null
   );
@@ -63,7 +101,7 @@ export const useVoiceIntent = (
     if (typeof window === 'undefined') return;
     
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as SpeechRecognitionWindow).SpeechRecognition || (window as SpeechRecognitionWindow).webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
       console.warn('Speech Recognition API not supported in this browser');
@@ -98,7 +136,7 @@ export const useVoiceIntent = (
     if (typeof window === 'undefined') return;
 
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      (window as SpeechRecognitionWindow).SpeechRecognition || (window as SpeechRecognitionWindow).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       console.error('Speech Recognition not supported');
@@ -124,7 +162,7 @@ export const useVoiceIntent = (
         setLastResponse(null);
       };
 
-      recognitionRef.current.onresult = (event: any) => {
+      recognitionRef.current.onresult = (event: SpeechRecognitionEventLike) => {
         let interimTranscript = '';
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -156,7 +194,7 @@ export const useVoiceIntent = (
         }
       };
 
-      recognitionRef.current.onerror = (error: any) => {
+      recognitionRef.current.onerror = (error: SpeechRecognitionErrorLike) => {
         console.error('Speech recognition error:', error.error);
         setIsListening(false);
         

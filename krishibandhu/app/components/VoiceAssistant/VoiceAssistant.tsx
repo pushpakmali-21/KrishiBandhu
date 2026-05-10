@@ -7,9 +7,9 @@ import { VoiceIndicator } from './VoiceIndicator';
 
 interface VoiceAssistantProps {
   selectedCrop?: string;
-  priceData?: any;
-  recommendation?: any;
-  weatherData?: any;
+  priceData?: unknown;
+  recommendation?: unknown;
+  weatherData?: unknown;
   onHighlightCard?: (cardId: string) => void;
   onScrollToSection?: (section: string) => void;
   onOpenModal?: (modalId: string) => void;

@@ -3,6 +3,17 @@
  * Helps diagnose language support and browser compatibility issues
  */
 
+interface DebugSpeechRecognitionLike {
+  language: string;
+}
+
+type DebugSpeechRecognitionConstructor = new () => DebugSpeechRecognitionLike;
+type VoiceDebugWindow = Window & {
+  SpeechRecognition?: DebugSpeechRecognitionConstructor;
+  webkitSpeechRecognition?: DebugSpeechRecognitionConstructor;
+  voiceDebugger?: typeof voiceDebugger;
+};
+
 export const voiceDebugger = {
   /**
    * Test if browser supports a specific language code
@@ -12,7 +23,7 @@ export const voiceDebugger = {
     message: string;
     alternatives: string[];
   }> => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as VoiceDebugWindow).SpeechRecognition || (window as VoiceDebugWindow).webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
       return {
@@ -89,8 +100,8 @@ export const voiceDebugger = {
    * Get browser capabilities
    */
   getBrowserCapabilities: () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    const SpeechSynthesis = (window as any).speechSynthesis;
+    const SpeechRecognition = (window as VoiceDebugWindow).SpeechRecognition || (window as VoiceDebugWindow).webkitSpeechRecognition;
+    const SpeechSynthesis = window.speechSynthesis;
 
     return {
       browser: getBrowserInfo(),
@@ -124,7 +135,7 @@ export const voiceDebugger = {
       console.groupEnd();
     }
 
-    console.log('\nAvailable TTS Voices:', capabilities.availableVoices.map((v: any) => ({ name: v.name, lang: v.lang })));
+    console.log('\nAvailable TTS Voices:', capabilities.availableVoices.map((v: SpeechSynthesisVoice) => ({ name: v.name, lang: v.lang })));
     
     console.groupEnd();
   },
@@ -166,7 +177,7 @@ function getBrowserInfo() {
  * Export diagnostic function to window for console access
  */
 if (typeof window !== 'undefined') {
-  (window as any).voiceDebugger = voiceDebugger;
+  (window as VoiceDebugWindow).voiceDebugger = voiceDebugger;
   console.log('💡 Voice debugger available: window.voiceDebugger');
   console.log('   - voiceDebugger.runFullDiagnostic()');
   console.log('   - voiceDebugger.testLanguageSupport(lang)');

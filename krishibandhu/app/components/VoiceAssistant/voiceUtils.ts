@@ -17,6 +17,23 @@ export interface IntentResult {
   action?: 'highlight-price' | 'highlight-recommendation' | 'scroll-heatmap' | 'highlight-weather' | 'open-calculator';
 }
 
+interface VoicePriceData {
+  current?: number | string;
+}
+
+interface VoiceRecommendationData {
+  recommendation?: string;
+  reasoning?: string;
+  confidence?: number | string;
+}
+
+interface VoiceWeatherData {
+  forecast?: Array<{
+    temp?: number | string;
+    condition?: string;
+  }>;
+}
+
 // ==================== English Patterns ====================
 const ENGLISH_PATTERNS = {
   price: [
@@ -116,9 +133,9 @@ export const matchIntent = (
   language: 'en-US' | 'hi-IN' | 'mr-IN',
   context?: {
     selectedCrop?: string;
-    priceData?: any;
-    recommendation?: any;
-    weatherData?: any;
+    priceData?: VoicePriceData;
+    recommendation?: VoiceRecommendationData;
+    weatherData?: VoiceWeatherData;
   }
 ): IntentResult => {
   if (!transcript || transcript.trim().length === 0) {
