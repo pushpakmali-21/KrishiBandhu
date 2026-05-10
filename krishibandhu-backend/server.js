@@ -46,7 +46,8 @@ app.get('/api/health', (req, res) => {
       'GET /api/prices',
       'GET /api/weather/forecast',
       'GET /api/recommendations/:crop',
-      'GET /api/trust/:farmerId'
+      'GET /api/trust/:farmerId',
+      'POST /api/marketplace/connect'
     ]
   });
 });
@@ -58,8 +59,12 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', message: err.message });
 });
 
-app.listen(PORT, () => {
-  console.log(`✅ Backend running on http://localhost:${PORT}`);
-  console.log(`🔗 Test: http://localhost:${PORT}/api/health`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Backend running on http://localhost:${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/api/health`);
+  });
+}
+
+module.exports = app;
 

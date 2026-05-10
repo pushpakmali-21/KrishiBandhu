@@ -1,24 +1,143 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { Zap, TrendingUp, Loader2 } from 'lucide-react';
+import {
+  BarChart3,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  Handshake,
+  Loader2,
+  Lock,
+  Mic,
+  Star,
+  TrendingUp,
+  Truck,
+  X,
+  Zap,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-import { VoiceProvider } from '../context/VoiceContext';
-import { VoiceAssistant } from '../components/VoiceAssistant';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5001/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000/api';
+const TRANSPORT_RATE_PER_QTL_KM = 50;
+const BUYER_PICKUP_PRICE_FACTOR = 0.98;
+
+type CropId = 'wheat' | 'jowar' | 'rice' | 'cotton' | 'jute' | 'tur' | 'redChilli';
+type TabId = 'insights' | 'marketplace' | 'mandi';
+type TransportMode = 'self' | 'buyer';
+type DemandLevel = 'HIGH' | 'MEDIUM' | 'LOW';
+
+interface CropGroup {
+  key: 'grains' | 'fibres' | 'pulses' | 'spices';
+  items: CropId[];
+}
+
+interface WeatherDay {
+  day: number;
+  temp: number;
+  humidity: number;
+  rainfall: number;
+  condition: string;
+}
+
+interface WeatherData {
+  location: string;
+  forecast: WeatherDay[];
+  lastUpdate: string;
+}
+
+interface Buyer {
+  name: string;
+  loc: string;
+  trust: number;
+  price: string;
+  kyc: boolean;
+}
+
+interface LiveTrade {
+  time: string;
+  crop: CropId;
+  vol: string;
+  price: number;
+  mandi: string;
+}
+
+interface SpeechRecognitionResultLike {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionResultLike) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
+
+const cropGroups: CropGroup[] = [
+  { key: 'grains', items: ['wheat', 'jowar', 'rice'] },
+  { key: 'fibres', items: ['cotton', 'jute'] },
+  { key: 'pulses', items: ['tur'] },
+  { key: 'spices', items: ['redChilli'] },
+];
+
+const buyers: Buyer[] = [
+  { name: 'Kisan Tradelink', loc: 'Nashik Hub', trust: 98, price: '+ Rs 50', kyc: true },
+  { name: 'AgroFresh Corp', loc: 'Pune Market', trust: 94, price: 'Market', kyc: true },
+  { name: 'Sahyadri Farmers', loc: 'Nashik Hub', trust: 92, price: '+ Rs 20', kyc: true },
+  { name: 'Mandi Direct', loc: 'Mumbai APMC', trust: 88, price: '- Rs 10', kyc: false },
+  { name: 'GreenEarth exports', loc: 'Vashi Hub', trust: 85, price: 'Market', kyc: true },
+  { name: 'Rural Connect', loc: 'Sangli Hub', trust: 82, price: '+ Rs 15', kyc: false },
+];
+
+const liveTrades: LiveTrade[] = [
+  { time: '2 mins ago', crop: 'wheat', vol: '15 qtl', price: 2450, mandi: 'Nashik' },
+  { time: '5 mins ago', crop: 'cotton', vol: '50 qtl', price: 6800, mandi: 'Lasalgaon' },
+  { time: '12 mins ago', crop: 'jowar', vol: '10 qtl', price: 3100, mandi: 'Pimpri' },
+  { time: '18 mins ago', crop: 'wheat', vol: '22 qtl', price: 2445, mandi: 'Yeola' },
+];
+
+const isTabId = (value: string | null): value is TabId =>
+  value === 'marketplace' || value === 'mandi' || value === 'insights';
+
+const isCropId = (value: string | null): value is CropId =>
+  cropGroups.some((group) => group.items.includes(value as CropId));
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(value);
 
 interface PriceData {
   current: number;
   history: { date: string; price: number }[];
   forecast: number[];
-  demand: string[];
+  demand: DemandLevel[];
   volatility: number;
 }
 
@@ -36,10 +155,12 @@ interface FarmerInputs {
   storage: string;
   daysInStorage: string;
   urgency: string;
+  distance: string;
+  transportMode: TransportMode;
 }
 
-export default function Dashboard() {
-  const [selectedCrop, setSelectedCrop] = useState('wheat');
+function DashboardContent() {
+  const [selectedCrop, setSelectedCrop] = useState<CropId>('wheat');
   const [priceData, setPriceData] = useState<PriceData | null>(null);
   const [recommendation, setRecommendation] = useState<RecommendationData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,72 +171,181 @@ export default function Dashboard() {
     quality: 'A',
     storage: 'Fresh',
     daysInStorage: '',
-    urgency: 'Flexible'
+    urgency: 'Flexible',
+    distance: '',
+    transportMode: 'self',
   });
   const [showCalcModal, setShowCalcModal] = useState(false);
   const [calcYield, setCalcYield] = useState('');
   const [calcDistance, setCalcDistance] = useState('');
-  const [weatherData, setWeatherData] = useState<any>(null);
+  const [calcTransportMode, setCalcTransportMode] = useState<TransportMode>('self');
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [currentTab, setCurrentTab] = useState<'insights' | 'marketplace' | 'mandi'>('insights');
+  const [currentTab, setCurrentTab] = useState<TabId>('insights');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [pinnedCrop, setPinnedCrop] = useState<CropId | null>(null);
+  const [showPlannerModal, setShowPlannerModal] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState('');
+  const tabs: { id: TabId; label: string; Icon: typeof BarChart3 }[] = [
+    { id: 'insights', label: t('tabs.insights'), Icon: BarChart3 },
+    { id: 'marketplace', label: t('tabs.marketplace'), Icon: Handshake },
+    { id: 'mandi', label: t('tabs.mandi'), Icon: Truck },
+  ];
 
   useEffect(() => {
     setIsLoggedIn(localStorage.getItem('kb_auth') === 'true');
+    const savedCrop = localStorage.getItem('kb_pinned_crop');
+    if (isCropId(savedCrop)) {
+      setPinnedCrop(savedCrop);
+      setSelectedCrop(savedCrop);
+    }
   }, []);
 
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab === 'marketplace' || tab === 'mandi' || tab === 'insights') {
-      setCurrentTab(tab as any);
+    if (isTabId(tab)) {
+      setCurrentTab(tab);
     }
   }, [searchParams]);
 
   // Connect Modal State
-  const [connectBuyer, setConnectBuyer] = useState<any>(null);
-  const [connectForm, setConnectForm] = useState({ crop: 'wheat', quantity: '', message: '' });
+  const [connectBuyer, setConnectBuyer] = useState<Buyer | null>(null);
+  const [connectForm, setConnectForm] = useState<{ crop: CropId; quantity: string; message: string }>({
+    crop: 'wheat',
+    quantity: '',
+    message: '',
+  });
   const [connectStatus, setConnectStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
-  const cropGroups = [
-    { key: 'grains', items: ['wheat', 'jowar', 'rice'] },
-    { key: 'fibres', items: ['cotton', 'jute'] },
-    { key: 'pulses', items: ['tur'] },
-    { key: 'spices', items: ['redChilli'] }
-  ];
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [priceRes, recRes, weatherRes] = await Promise.all([
+        axios.get<PriceData>(`${API_BASE}/prices/${selectedCrop}`),
+        axios.get<RecommendationData>(`${API_BASE}/recommendations/${selectedCrop}`),
+        axios.get<WeatherData>(`${API_BASE}/weather/forecast`)
+      ]);
+
+      setPriceData(priceRes.data);
+      setRecommendation({
+        recommendation: recRes.data.recommendation,
+        reasoning: recRes.data.reasoning,
+        confidence: recRes.data.confidence,
+        expectedPrice: recRes.data.expectedPrice,
+        daysToWait: recRes.data.daysToWait,
+      });
+      setWeatherData(weatherRes.data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to reach the server.';
+      console.warn('API Error:', message);
+      setError(`Could not load market data: ${message}. Make sure the backend is running.`);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCrop]);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const [priceRes, recRes, weatherRes] = await Promise.all([
-          axios.get(`${API_BASE}/prices/${selectedCrop}`),
-          axios.get(`${API_BASE}/recommendations/${selectedCrop}`),
-          axios.get(`${API_BASE}/weather/forecast`)
-        ]);
-
-        setPriceData(priceRes.data);
-        setRecommendation({
-          recommendation: recRes.data.recommendation,
-          reasoning: recRes.data.reasoning,
-          confidence: recRes.data.confidence,
-          expectedPrice: recRes.data.expectedPrice,
-          daysToWait: recRes.data.daysToWait,
-        });
-        setWeatherData(weatherRes.data);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unable to reach the server.';
-        console.warn('API Error:', message);
-        setError(`Could not load market data: ${message}. Make sure the backend is running.`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
-  }, [selectedCrop]);
+  }, [fetchDashboardData]);
+
+  const quantityNum = parseFloat(farmerInputs.quantity) || 0;
+  const distanceNum = parseFloat(farmerInputs.distance) || 0;
+  const dashboardTransportCost =
+    farmerInputs.transportMode === 'self' ? quantityNum * distanceNum * TRANSPORT_RATE_PER_QTL_KM : 0;
+  const dashboardGross = (priceData?.current || 0) * quantityNum *
+    (farmerInputs.transportMode === 'buyer' ? BUYER_PICKUP_PRICE_FACTOR : 1);
+  const dashboardNetProfit = Math.max(0, dashboardGross - dashboardTransportCost);
+
+  const togglePinnedCrop = () => {
+    if (pinnedCrop === selectedCrop) {
+      localStorage.removeItem('kb_pinned_crop');
+      setPinnedCrop(null);
+      return;
+    }
+
+    localStorage.setItem('kb_pinned_crop', selectedCrop);
+    setPinnedCrop(selectedCrop);
+  };
+
+  const applyVoiceCommand = (transcript: string) => {
+    const spoken = transcript.toLowerCase();
+    const matchedCrop = cropGroups
+      .flatMap((group) => group.items)
+      .find((crop) => spoken.includes(crop.toLowerCase()) || spoken.includes(t(`dashboard.crops.${crop}`).toLowerCase()));
+
+    if (matchedCrop) {
+      setSelectedCrop(matchedCrop);
+      setVoiceStatus(`Selected ${t(`dashboard.crops.${matchedCrop}`)}`);
+      return;
+    }
+
+    if (spoken.includes('market')) {
+      setCurrentTab('marketplace');
+      setVoiceStatus('Opened marketplace');
+      return;
+    }
+
+    if (spoken.includes('mandi')) {
+      setCurrentTab('mandi');
+      setVoiceStatus('Opened mandi feed');
+      return;
+    }
+
+    if (spoken.includes('insight') || spoken.includes('dashboard')) {
+      setCurrentTab('insights');
+      setVoiceStatus('Opened insights');
+      return;
+    }
+
+    if (spoken.includes('recommend') && recommendation) {
+      const message = `${recommendation.recommendation}. ${recommendation.reasoning}`;
+      window.speechSynthesis?.cancel();
+      window.speechSynthesis?.speak(new SpeechSynthesisUtterance(message));
+      setVoiceStatus(t('voice.reading'));
+      return;
+    }
+
+    setVoiceStatus('Try saying wheat, marketplace, mandi, or recommendation.');
+  };
+
+  const startVoiceAssistant = () => {
+    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!Recognition) {
+      setVoiceStatus(t('voice.not_supported'));
+      return;
+    }
+
+    const recognition = new Recognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = false;
+    setIsListening(true);
+    setVoiceStatus(t('voice.listening'));
+    recognition.onstart = () => {
+      setIsListening(true);
+      setVoiceStatus(t('voice.listening'));
+    };
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      applyVoiceCommand(transcript);
+    };
+    recognition.onerror = () => {
+      setVoiceStatus('Voice command failed. Please try again.');
+    };
+    recognition.onend = () => {
+      setIsListening(false);
+    };
+    try {
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      setVoiceStatus('Voice could not start. Please try again.');
+    }
+  };
 
   if (loading) {
     return (
@@ -129,23 +359,9 @@ export default function Dashboard() {
 
 
   return (
-    <VoiceProvider
-      selectedCrop={selectedCrop}
-      priceData={priceData}
-      recommendation={recommendation}
-      weatherData={weatherData}
-    >
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-        {/* Voice Assistant Components */}
-        <VoiceAssistant
-          selectedCrop={selectedCrop}
-          priceData={priceData}
-          recommendation={recommendation}
-          weatherData={weatherData}
-        />
-
-        {/* Header */}
-        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 shadow-sm border-b border-green-100">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 shadow-sm border-b border-green-100">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-black text-green-800 tracking-tight" suppressHydrationWarning>{t('nav.brand')}</h1>
@@ -156,6 +372,14 @@ export default function Dashboard() {
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
               {t('nav.live_mandi')}
             </span>
+            <button
+              onClick={() => setShowPlannerModal(true)}
+              className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-200 px-4 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-amber-100 transition-colors"
+              suppressHydrationWarning
+            >
+              <CalendarDays className="w-4 h-4" />
+              {t('planner.button')}
+            </button>
             <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md" suppressHydrationWarning>{t('nav.nashik_hub')}</button>
             <LanguageSwitcher />
           </div>
@@ -167,20 +391,16 @@ export default function Dashboard() {
 
         {/* Tab Navigation */}
         <div className="flex gap-1 mb-8 bg-white/50 p-1.5 rounded-2xl border border-green-100 max-w-fit mx-auto shadow-sm">
-          {[
-            { id: 'insights', label: t('tabs.insights'), icon: '📊' },
-            { id: 'marketplace', label: t('tabs.marketplace'), icon: '🤝' },
-            { id: 'mandi', label: t('tabs.mandi'), icon: '🚚' }
-          ].map((tab) => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setCurrentTab(tab.id as any)}
+              onClick={() => setCurrentTab(tab.id)}
               className={`px-6 py-3 rounded-xl font-black text-sm transition-all flex items-center gap-2 ${currentTab === tab.id
                 ? 'bg-green-600 text-white shadow-xl shadow-green-200'
                 : 'text-gray-500 hover:bg-white hover:text-green-600'
                 }`}
             >
-              <span>{tab.icon}</span>
+              <tab.Icon className="w-4 h-4" />
               <span>{tab.label}</span>
             </button>
           ))}
@@ -191,7 +411,26 @@ export default function Dashboard() {
             <div className="mb-10">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-2xl font-extrabold text-gray-800" suppressHydrationWarning>{t('dashboard.crop_analysis')}</h2>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-2xl font-extrabold text-gray-800" suppressHydrationWarning>{t('dashboard.crop_analysis')}</h2>
+                      <button
+                        type="button"
+                        onClick={togglePinnedCrop}
+                        className={`p-2 rounded-full border transition-colors ${pinnedCrop === selectedCrop
+                          ? 'bg-amber-50 text-amber-500 border-amber-200'
+                          : 'bg-white text-gray-400 border-gray-200 hover:text-amber-500'
+                          }`}
+                        aria-label={pinnedCrop === selectedCrop ? 'Remove pinned crop' : 'Pin crop to watchlist'}
+                        title={pinnedCrop === selectedCrop ? 'Remove pinned crop' : 'Pin crop to watchlist'}
+                      >
+                        <Star className="w-4 h-4" fill={pinnedCrop === selectedCrop ? 'currentColor' : 'none'} />
+                      </button>
+                    </div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
+                      {pinnedCrop ? `${t('watchlist.pinned')}: ${t(`dashboard.crops.${pinnedCrop}`)}` : t('watchlist.empty')}
+                    </p>
+                  </div>
                   <button
                     onClick={() => setShowInputModal(true)}
                     className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100 hover:bg-green-100 transition-colors"
@@ -203,7 +442,11 @@ export default function Dashboard() {
                 <div className="bg-white p-1 rounded-xl shadow-inner border border-gray-100 relative min-w-[220px] shadow-sm hover:shadow-md transition-shadow">
                   <select
                     value={selectedCrop}
-                    onChange={(e) => setSelectedCrop(e.target.value)}
+                    onChange={(e) => {
+                      if (isCropId(e.target.value)) {
+                        setSelectedCrop(e.target.value);
+                      }
+                    }}
                     className="w-full bg-transparent px-4 py-2.5 rounded-lg font-black text-sm text-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer z-10 relative"
                   >
                     {cropGroups.map((group) => (
@@ -217,7 +460,7 @@ export default function Dashboard() {
                     ))}
                   </select>
                   <div className="absolute top-1/2 right-4 -translate-y-1/2 text-green-600 pointer-events-none text-xs font-black">
-                    ▼
+                    v
                   </div>
                 </div>
               </div>
@@ -238,20 +481,20 @@ export default function Dashboard() {
             ) : (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                 {/* Key Metrics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                   <button onClick={() => setShowCalcModal(true)} className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-all hover:scale-[1.02] hover:border-green-300 hover:shadow-green-100 cursor-pointer text-left w-full group">
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest" suppressHydrationWarning>{t('metrics.current_price')}</p>
                     <div className="flex items-end gap-2 mt-2">
-                      <span className="text-4xl font-black text-green-800">₹{priceData?.current.toLocaleString()}</span>
-                      <span className="text-gray-500 font-medium pb-1.5">/quintal</span>
+                      <span className="text-4xl font-black text-green-800">{formatCurrency(priceData?.current || 0)}</span>
+                      <span className="text-gray-500 font-medium pb-1.5">{t('dashboard.metrics.per_quintal')}</span>
                     </div>
-                    <p className="text-[10px] font-bold text-green-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click to calculate profit →</p>
+                    <p className="text-[10px] font-bold text-green-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">{t('profit_calculator.open_hint')}</p>
                   </button>
 
                   <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02]">
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('dashboard.metrics.forecast_peak')}</p>
                     <div className="flex items-end gap-2 mt-2">
-                      <span className="text-4xl font-black text-blue-800">₹{Math.max(...(priceData?.forecast || [0])).toLocaleString()}</span>
+                      <span className="text-4xl font-black text-blue-800">{formatCurrency(Math.max(...(priceData?.forecast || [0])))}</span>
                       <TrendingUp className="w-6 h-6 text-blue-500 mb-2" />
                     </div>
                   </div>
@@ -266,20 +509,34 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02] col-span-1 md:col-span-3">
+                  <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02]">
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('profit_calculator.estimated_net_profit')}</p>
+                    <div className="mt-2">
+                      <span className="text-3xl font-black text-emerald-700">
+                        {quantityNum > 0 ? formatCurrency(dashboardNetProfit) : '--'}
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">
+                      {farmerInputs.transportMode === 'buyer'
+                        ? t('profit_calculator.buyer_pickup_note')
+                        : t('profit_calculator.self_drop_note')}
+                    </p>
+                  </div>
+
+                  <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02] col-span-1 md:col-span-4">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                       <div className="flex items-center gap-4">
                         <div className="bg-blue-50 p-4 rounded-2xl text-blue-600">
-                          {weatherData?.forecast[0].condition === 'Rainy' ? '🌧️' : '☀️'}
+                          <Truck className="w-6 h-6" />
                         </div>
                         <div>
                           <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('weather.weather_context')}</p>
-                          <h4 className="text-2xl font-black text-gray-800">{weatherData?.forecast[0].temp}°C — {weatherData?.forecast[0].condition}</h4>
+                          <h4 className="text-2xl font-black text-gray-800">{weatherData?.forecast[0].temp}&deg;C - {weatherData?.forecast[0].condition}</h4>
                           <p className="text-[10px] font-bold text-gray-500 uppercase mt-1">{t('weather.location_nashik')}</p>
                         </div>
                       </div>
 
-                      {weatherData?.forecast.some((f: any) => f.rainfall > 5) && (
+                      {weatherData?.forecast.some((f) => f.rainfall > 5) && (
                         <div className="flex-1 w-full bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-4 animate-pulse">
                           <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600 text-xl font-bold">!</div>
                           <div>
@@ -438,17 +695,12 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { name: 'Kisan Tradelink', loc: 'Nashik Hub', trust: 98, price: '+ ₹50', kyc: true },
-                { name: 'AgroFresh Corp', loc: 'Pune Market', trust: 94, price: 'Market', kyc: true },
-                { name: 'Sahyadri Farmers', loc: 'Nashik Hub', trust: 92, price: '+ ₹20', kyc: true },
-                { name: 'Mandi Direct', loc: 'Mumbai APMC', trust: 88, price: '- ₹10', kyc: false },
-                { name: 'GreenEarth exports', loc: 'Vashi Hub', trust: 85, price: 'Market', kyc: true },
-                { name: 'Rural Connect', loc: 'Sangli Hub', trust: 82, price: '+ ₹15', kyc: false },
-              ].map((buyer, i) => (
+              {buyers.map((buyer, i) => (
                 <div key={i} className="bg-white rounded-3xl p-6 border border-green-100 shadow-sm hover:shadow-xl hover:shadow-green-900/5 transition-all group">
                   <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-xl">🏢</div>
+                    <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-700">
+                      <Building2 className="w-6 h-6" />
+                    </div>
                     <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${buyer.trust > 90 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                       Trust: {buyer.trust}%
                     </div>
@@ -473,7 +725,10 @@ export default function Dashboard() {
                       }}
                       className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg group-hover:bg-green-600 transition-colors"
                     >
-                      {isLoggedIn ? t('marketplace.connect') : '🔒 Login to Connect'}
+                      <span className="inline-flex items-center gap-1.5">
+                        {!isLoggedIn && <Lock className="w-3.5 h-3.5" />}
+                        {isLoggedIn ? t('marketplace.connect') : t('marketplace.login_to_connect')}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -488,24 +743,19 @@ export default function Dashboard() {
             <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm">
               <h2 className="text-2xl font-black text-gray-800 mb-6">{t('mandi.live_trades')}</h2>
               <div className="space-y-4">
-                {[
-                  { time: '2 mins ago', crop: 'Wheat', vol: '15 qtl', price: '₹2,450', mandi: 'Nashik' },
-                  { time: '5 mins ago', crop: 'Cotton', vol: '50 qtl', price: '₹6,800', mandi: 'Lasalgaon' },
-                  { time: '12 mins ago', crop: 'Jowar', vol: '10 qtl', price: '₹3,100', mandi: 'Pimpri' },
-                  { time: '18 mins ago', crop: 'Wheat', vol: '22 qtl', price: '₹2,445', mandi: 'Yeola' },
-                ].map((trade, i) => (
+                {liveTrades.map((trade, i) => (
                   <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center font-black text-green-600">
-                        {t(`dashboard.crops.${trade.crop.toLowerCase()}`).charAt(0)}
+                        {t(`dashboard.crops.${trade.crop}`).charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-black text-gray-800">{t(`dashboard.crops.${trade.crop.toLowerCase()}`)} — {trade.vol}</p>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{trade.mandi} Mandi • {trade.time}</p>
+                        <p className="text-sm font-black text-gray-800">{t(`dashboard.crops.${trade.crop}`)} - {trade.vol}</p>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{trade.mandi} Mandi | {trade.time}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-black text-green-700">{trade.price}</p>
+                      <p className="text-lg font-black text-green-700">{formatCurrency(trade.price)}</p>
                       <p className="text-[10px] font-bold text-green-500 uppercase tracking-tighter">Verified Trade</p>
                     </div>
                   </div>
@@ -532,6 +782,36 @@ export default function Dashboard() {
                     value={farmerInputs.quantity}
                     onChange={(e) => setFarmerInputs({ ...farmerInputs, quantity: e.target.value })}
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.distance_label')}</label>
+                  <input
+                    type="number"
+                    placeholder={t('farmer_form.distance_placeholder')}
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                    value={farmerInputs.distance}
+                    onChange={(e) => setFarmerInputs({ ...farmerInputs, distance: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.transport_label')}</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['self', 'buyer'] as TransportMode[]).map((mode) => (
+                      <button
+                        type="button"
+                        key={mode}
+                        onClick={() => setFarmerInputs({ ...farmerInputs, transportMode: mode })}
+                        className={`py-3 rounded-xl text-xs font-black transition-all ${farmerInputs.transportMode === mode
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-200'
+                          : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                          }`}
+                      >
+                        {mode === 'self' ? t('farmer_form.transport_self') : t('farmer_form.transport_buyer')}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -617,7 +897,9 @@ export default function Dashboard() {
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-black text-gray-900">{t('profit_calculator.title')}</h3>
-                <button onClick={() => setShowCalcModal(false)} className="text-gray-400 hover:text-gray-600 font-bold">✕</button>
+                <button onClick={() => setShowCalcModal(false)} className="text-gray-400 hover:text-gray-600 font-bold" aria-label="Close profit calculator">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -643,6 +925,25 @@ export default function Dashboard() {
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.transport_label')}</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(['self', 'buyer'] as TransportMode[]).map((mode) => (
+                        <button
+                          type="button"
+                          key={mode}
+                          onClick={() => setCalcTransportMode(mode)}
+                          className={`py-3 rounded-xl text-xs font-black transition-all ${calcTransportMode === mode
+                            ? 'bg-green-600 text-white shadow-lg shadow-green-200'
+                            : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                            }`}
+                        >
+                          {mode === 'self' ? t('farmer_form.transport_self') : t('farmer_form.transport_buyer')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="bg-orange-50 rounded-2xl p-4 border border-orange-100">
                     <p className="text-xs font-bold text-orange-700 leading-relaxed uppercase tracking-widest mb-1">{t('profit_calculator.risk_low')}</p>
                     <p className="text-xs text-orange-600 font-medium">8.8% gain with {priceData?.volatility}% volatility = LOW RISK advice.</p>
@@ -656,9 +957,9 @@ export default function Dashboard() {
                   ].map((option, i) => {
                     const yieldNum = parseFloat(calcYield) || 0;
                     const distNum = parseFloat(calcDistance) || 0;
-                    const freight = 5 * distNum; // Mock freight cost: ₹5/km
-                    const gross = option.price * yieldNum;
-                    const net = gross - freight;
+                    const freight = calcTransportMode === 'self' ? yieldNum * distNum * TRANSPORT_RATE_PER_QTL_KM : 0;
+                    const gross = option.price * yieldNum * (calcTransportMode === 'buyer' ? BUYER_PICKUP_PRICE_FACTOR : 1);
+                    const net = Math.max(0, gross - freight);
 
                     return (
                       <div key={i} className={`rounded-2xl p-5 border ${option.color === 'green' ? 'bg-green-50/50 border-green-200' : 'bg-blue-50/50 border-blue-200 shadow-lg shadow-blue-100'}`}>
@@ -667,19 +968,22 @@ export default function Dashboard() {
                         </p>
                         <div className="flex justify-between items-end mb-4">
                           <span className={`text-2xl font-black ${option.color === 'green' ? 'text-green-900' : 'text-blue-900'}`}>
-                            ₹{net.toLocaleString()}
+                            {formatCurrency(net)}
                           </span>
                           <span className="text-[10px] font-bold text-gray-400 lowercase">{t('profit_calculator.net_profit')}</span>
                         </div>
                         <div className="space-y-1 pt-3 border-t border-dashed border-gray-200">
                           <div className="flex justify-between text-[10px] font-bold">
                             <span className="text-gray-400 uppercase">{t('profit_calculator.gross')}</span>
-                            <span className="text-gray-600">₹{gross.toLocaleString()}</span>
+                            <span className="text-gray-600">{formatCurrency(gross)}</span>
                           </div>
                           <div className="flex justify-between text-[10px] font-bold">
                             <span className="text-gray-400 uppercase">{t('profit_calculator.freight')}</span>
-                            <span className="text-gray-600">- ₹{freight.toLocaleString()}</span>
+                            <span className="text-gray-600">- {formatCurrency(freight)}</span>
                           </div>
+                          {calcTransportMode === 'buyer' && (
+                            <p className="text-[10px] font-bold text-blue-600 pt-2">{t('profit_calculator.buyer_pickup_note')}</p>
+                          )}
                         </div>
                       </div>
                     );
@@ -707,7 +1011,7 @@ export default function Dashboard() {
             {connectStatus === 'sent' ? (
               <div className="p-12 text-center">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-4xl">✅</span>
+                  <CheckCircle2 className="w-10 h-10 text-green-700" />
                 </div>
                 <h3 className="text-2xl font-black text-green-800 mb-2">{t('connect_modal.success_title')}</h3>
                 <p className="text-gray-600 font-medium mb-8">
@@ -743,7 +1047,11 @@ export default function Dashboard() {
                       <select
                         className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all appearance-none"
                         value={connectForm.crop}
-                        onChange={(e) => setConnectForm({ ...connectForm, crop: e.target.value })}
+                        onChange={(e) => {
+                          if (isCropId(e.target.value)) {
+                            setConnectForm({ ...connectForm, crop: e.target.value });
+                          }
+                        }}
                       >
                         {cropGroups.flatMap(group => group.items).map(c => (
                           <option key={c} value={c}>{t(`dashboard.crops.${c}`)}</option>
@@ -821,8 +1129,69 @@ export default function Dashboard() {
         </div>
       )}
 
+      {showPlannerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-8">
+              <div className="flex justify-between items-start gap-4 mb-6">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-600 mb-2">{t('planner.badge')}</p>
+                  <h3 className="text-2xl font-black text-gray-900">{t('planner.title')}</h3>
+                </div>
+                <button onClick={() => setShowPlannerModal(false)} className="text-gray-400 hover:text-gray-600" aria-label="Close next season planner">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm font-medium text-gray-600 leading-relaxed mb-6">{t('planner.description')}</p>
+              <div className="grid grid-cols-2 gap-3 text-xs font-bold text-gray-600 mb-8">
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">{t('planner.soil')}</div>
+                <div className="bg-green-50 border border-green-100 rounded-2xl p-4">{t('planner.water')}</div>
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">{t('planner.market')}</div>
+                <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4">{t('planner.credit')}</div>
+              </div>
+              <button
+                onClick={() => setShowPlannerModal(false)}
+                className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-black transition-all"
+              >
+                {t('planner.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+        {voiceStatus && (
+          <div className="max-w-[260px] rounded-2xl bg-white px-4 py-3 text-xs font-bold text-gray-700 shadow-xl border border-green-100">
+            {voiceStatus}
+          </div>
+        )}
+        <button
+          onClick={startVoiceAssistant}
+          className={`p-4 rounded-full text-white shadow-lg transition-all ${isListening ? 'bg-red-600 scale-105' : 'bg-green-600 hover:bg-green-700'}`}
+          aria-label={t('voice.start')}
+          title={t('voice.start')}
+        >
+          <Mic className="w-6 h-6" />
+        </button>
       </div>
-    </VoiceProvider>
+
+    </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col items-center justify-center h-screen bg-green-50">
+          <Loader2 className="w-12 h-12 text-green-600 animate-spin mb-4" />
+          <p className="text-green-800 font-semibold text-lg">Loading dashboard...</p>
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }
 

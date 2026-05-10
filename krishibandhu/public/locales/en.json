@@ -86,6 +86,11 @@
         "title": "Farmer Inputs",
         "quantity_label": "Crop Quantity (quintals)",
         "quantity_placeholder": "e.g. 50",
+        "distance_label": "Distance to Mandi (km)",
+        "distance_placeholder": "e.g. 25",
+        "transport_label": "Transport Handling",
+        "transport_self": "Self Drop-off",
+        "transport_buyer": "Buyer Pickup",
         "quality_label": "Quality Grade",
         "quality_a": "Grade A (Premium)",
         "quality_b": "Grade B (Standard)",
@@ -108,6 +113,10 @@
         "yield_placeholder": "e.g. 50",
         "distance_label": "Distance to Mandi (km)",
         "distance_placeholder": "e.g. 25",
+        "open_hint": "Click to calculate profit",
+        "estimated_net_profit": "Estimated Net Profit",
+        "buyer_pickup_note": "Buyer pickup: transport is zero; base price assumes 2% negotiation.",
+        "self_drop_note": "Self drop-off: transport uses quantity x distance x Rs 50.",
         "sell_today": "Sell Today",
         "wait_for_peak": "Wait for Peak",
         "net_profit": "Net Profit",
@@ -140,6 +149,7 @@
         "transactions": "Transactions",
         "kyc_verified": "KYC Verified",
         "trust_score": "Trust Score",
+        "login_to_connect": "Login to Connect",
         "sms_title": "📱 SMS Fallback — No Smartphone? No Problem.",
         "sms_subtitle": "Farmers without smartphones receive key advice via SMS:",
         "sms_sample": "KrishiBandhu: Wheat price ₹2,150. AI says WAIT — ₹2,340 expected in 7 days. Reply HELP for info.",
@@ -167,6 +177,21 @@
             "not_understood": "I did not understand. Please try again",
             "no_speech": "No speech detected. Please try again"
         }
+    },
+    "watchlist": {
+        "pinned": "Pinned crop",
+        "empty": "No crop pinned yet"
+    },
+    "planner": {
+        "button": "Next Season Planner",
+        "badge": "Coming Soon",
+        "title": "Next Season Planner",
+        "description": "AI planning for the next crop cycle will combine soil, water, weather, market demand, and credit readiness before sowing.",
+        "soil": "Soil fit",
+        "water": "Water needs",
+        "market": "Demand forecast",
+        "credit": "Input credit",
+        "close": "Got it"
     },
     "volatility_modal": {
         "title": "Market Volatility Detail",

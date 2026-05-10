@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Phone, Lock, CheckCircle2 } from 'lucide-react';
@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 
-export default function LoginPage() {
+function LoginPageContent() {
     const { t } = useTranslation();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -141,5 +141,19 @@ export default function LoginPage() {
                 <p>© 2026 KrishiBandhu. All rights reserved.</p>
             </footer>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-green-50 flex items-center justify-center">
+                    <p className="text-green-800 font-semibold">Loading login...</p>
+                </div>
+            }
+        >
+            <LoginPageContent />
+        </Suspense>
     );
 }

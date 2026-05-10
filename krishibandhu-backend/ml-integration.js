@@ -1,46 +1,48 @@
-const { spawn, spawnSync } = require('child_process');
+const { spawn } = require('child_process');
+const { spawnSync } = require('child_process');
 const path = require('path');
 
 const fs = require('fs');
 
-function findPythonPath() {
-  // Check virtual environment first (Windows and Unix paths)
-  const venvPythonWin = path.join(__dirname, '.venv', 'Scripts', 'python.exe');
-  const venvPythonUnix = path.join(__dirname, '.venv', 'bin', 'python');
+function getPythonCandidates() {
+  return [
+    process.env.PYTHON_BIN,
+    path.join(__dirname, '.venv', 'Scripts', 'python.exe'),
+    path.join(__dirname, '.venv', 'bin', 'python'),
+    path.join(__dirname, '..', '.venv', 'Scripts', 'python.exe'),
+    path.join(__dirname, '..', '.venv', 'bin', 'python'),
+    'python3',
+    'python',
+  ].filter(Boolean);
+}
 
-  if (fs.existsSync(venvPythonWin)) {
-    return venvPythonWin;
-  }
-  if (fs.existsSync(venvPythonUnix)) {
-    return venvPythonUnix;
-  }
-
-  // Try python3 first (avoids Windows 10+ store alias issue), then python
-  for (const bin of ['python3', 'python']) {
-    try {
-      const result = spawnSync(bin, ['--version'], { 
-        timeout: 2000,
-        stdio: 'pipe',
-        windowsHide: true
-      });
-      if (result.status === 0) {
-        return bin;
-      }
-    } catch (e) {
-      console.warn(`Python check failed for '${bin}':`, e.message);
-    }
+function canRunModel(pythonBin) {
+  if (pythonBin.includes(path.sep) && !fs.existsSync(pythonBin)) {
+    return false;
   }
 
-  throw new Error('No Python binary found (tried .venv, python3 and python)');
+  const result = spawnSync(pythonBin, ['-c', 'import json, numpy; print(json.dumps({"ok": True}))'], {
+    encoding: 'utf8',
+    timeout: 5000,
+    windowsHide: true,
+  });
+
+  return result.status === 0;
+}
+
+function findPythonBinary() {
+  const candidates = getPythonCandidates();
+  const selected = candidates.find(canRunModel);
+
+  if (!selected) {
+    throw new Error(`No Python binary with numpy found (tried ${candidates.join(', ')})`);
+  }
+
+  return selected;
 }
 
 function spawnPython(scriptPath) {
-  const pythonPath = findPythonPath();
-  const proc = spawn(pythonPath, [scriptPath], {
-    windowsHide: true,
-    stdio: ['pipe', 'pipe', 'pipe']
-  });
-  return proc;
+  return spawn(findPythonBinary(), [scriptPath], { windowsHide: true });
 }
 
 function callPythonModel(historicalData) {
@@ -54,13 +56,7 @@ function callPythonModel(historicalData) {
       console.error(e.message);
       return resolve({
         forecast: [2180, 2200, 2220, 2250, 2280, 2310, 2340],
-        recommendation: { 
-          action: 'SELL NOW (Fallback)', 
-          confidence: 50,
-          reasoning: 'ML service unavailable - using fallback analysis',
-          expected_price: 2250,
-          days_to_wait: 2
-        }
+        recommendation: { action: 'SELL NOW (Fallback)', confidence: 50 }
       });
     }
 
@@ -86,13 +82,7 @@ function callPythonModel(historicalData) {
       console.error(`Failed to start Python: ${err.message}`);
       resolve({
         forecast: [2180, 2200, 2220, 2250, 2280, 2310, 2340],
-        recommendation: { 
-          action: 'SELL NOW (Fallback)', 
-          confidence: 50,
-          reasoning: 'ML service unavailable - using fallback analysis',
-          expected_price: 2250,
-          days_to_wait: 2
-        }
+        recommendation: { action: 'SELL NOW (Fallback)', confidence: 50 }
       });
     });
 
@@ -103,13 +93,7 @@ function callPythonModel(historicalData) {
         // Fallback to dummy forecast if ML fails
         return resolve({
            forecast: [2180, 2200, 2220, 2250, 2280, 2310, 2340],
-           recommendation: { 
-             action: 'SELL NOW (Fallback)', 
-             confidence: 50,
-             reasoning: 'ML service unavailable - using fallback analysis',
-             expected_price: 2250,
-             days_to_wait: 2
-           }
+           recommendation: { action: 'SELL NOW (Fallback)', confidence: 50 }
         });
       }
       
