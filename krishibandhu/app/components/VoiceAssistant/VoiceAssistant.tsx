@@ -3,7 +3,6 @@
 import React from 'react';
 import { VoiceButton } from './VoiceButton';
 import { VoiceOverlay } from './VoiceOverlay';
-import { VoiceIndicator } from './VoiceIndicator';
 
 interface VoiceAssistantProps {
   selectedCrop?: string;
@@ -31,8 +30,6 @@ export const VoiceAssistant: React.FC<VoiceAssistantProps> = () => {
       {/* Full-screen overlay showing transcription and responses */}
       <VoiceOverlay />
 
-      {/* Language indicator in top-right */}
-      <VoiceIndicator />
     </>
   );
 };

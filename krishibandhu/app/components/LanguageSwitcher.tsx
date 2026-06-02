@@ -25,12 +25,14 @@ export default function LanguageSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-green-50 hover:text-green-700 border border-gray-200 hover:border-green-300 px-3 py-1.5 rounded-full transition-all"
+        className="nav-icon-btn"
         aria-label="Switch language"
+        title={`Language: ${current.full}`}
       >
-        <Globe className="w-4 h-4" />
-        <span suppressHydrationWarning>{current.label}</span>
-        <span className="text-[10px] opacity-60">▼</span>
+        <Globe
+          className="nav-icon-glyph"
+          style={{ transform: open ? 'rotate(20deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}
+        />
       </button>
 
       {open && (
@@ -38,21 +40,17 @@ export default function LanguageSwitcher() {
           {/* Backdrop */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           {/* Dropdown */}
-          <div className="absolute right-0 top-full mt-2 z-50 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden min-w-[150px]">
+          <div className="lang-dropdown">
             {LANGUAGES.map((lang) => (
               <button
                 key={lang.code}
                 onClick={() => handleSelect(lang.code)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors ${
-                  lang.code === i18n.language
-                    ? 'bg-green-50 text-green-700'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
+                className={`lang-dropdown-item ${lang.code === i18n.language ? 'active' : ''}`}
               >
-                <span className="font-black text-xs text-gray-400 w-6">{lang.label}</span>
-                <span>{lang.full}</span>
+                <span className="lang-code">{lang.label}</span>
+                <span className="lang-full">{lang.full}</span>
                 {lang.code === i18n.language && (
-                  <span className="ml-auto text-green-600 text-xs">✓</span>
+                  <span className="lang-check">✓</span>
                 )}
               </button>
             ))}

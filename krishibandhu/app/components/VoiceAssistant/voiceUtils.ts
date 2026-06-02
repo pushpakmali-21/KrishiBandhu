@@ -8,13 +8,23 @@ export type QueryIntent =
   | 'weather' 
   | 'calculator' 
   | 'help' 
+  | 'select_crop' 
+  | 'switch_tab' 
   | 'unknown';
 
 export interface IntentResult {
   intent: QueryIntent;
   confidence: number;
   response: string;
-  action?: 'highlight-price' | 'highlight-recommendation' | 'scroll-heatmap' | 'highlight-weather' | 'open-calculator';
+  action?: 
+    | 'highlight-price' 
+    | 'highlight-recommendation' 
+    | 'scroll-heatmap' 
+    | 'highlight-weather' 
+    | 'open-calculator' 
+    | 'select-crop' 
+    | 'switch-tab';
+  data?: unknown;
 }
 
 interface VoicePriceData {
@@ -33,6 +43,63 @@ interface VoiceWeatherData {
     condition?: string;
   }>;
 }
+
+// ==================== Crop & Tab Keywords ====================
+const CROP_KEYWORDS = {
+  wheat: {
+    en: ['wheat'],
+    hi: ['गेहूं', 'गेहूँ', 'कनक'],
+    mr: ['गहू', 'गहूँ']
+  },
+  jowar: {
+    en: ['jowar', 'sorghum'],
+    hi: ['ज्वार', 'जवार'],
+    mr: ['ज्वारी', 'ज्वार']
+  },
+  rice: {
+    en: ['rice', 'paddy'],
+    hi: ['चावल', 'धान'],
+    mr: ['तांदूळ', 'भात']
+  },
+  cotton: {
+    en: ['cotton'],
+    hi: ['कपास', 'रूई', 'रुई'],
+    mr: ['कापूस']
+  },
+  jute: {
+    en: ['jute'],
+    hi: ['पटसन', 'जूट'],
+    mr: ['ताग', 'जूट']
+  },
+  tur: {
+    en: ['tur', 'arhar', 'pigeon pea'],
+    hi: ['अरहर', 'तूर', 'तुअर'],
+    mr: ['तूर']
+  },
+  redChilli: {
+    en: ['chilli', 'red chilli', 'pepper'],
+    hi: ['लाल मिर्च', 'मिर्च'],
+    mr: ['लाल मिरची', 'मिरची']
+  }
+};
+
+const TAB_KEYWORDS = {
+  marketplace: {
+    en: ['market', 'marketplace', 'buyer', 'buyers'],
+    hi: ['बाजार', 'मार्केट', 'मार्केटप्लेस', 'खरीदार', 'बायर'],
+    mr: ['बाजार', 'मार्केट', 'मार्केटप्लेस', 'खरेदीदार', 'बायर']
+  },
+  mandi: {
+    en: ['mandi', 'live feed', 'trades', 'feed'],
+    hi: ['मंडी', 'लाइव मंडी', 'व्यापार', 'सौदा'],
+    mr: ['मंडी', 'लाईव्ह मंडी', 'व्यापार', 'सौदा']
+  },
+  insights: {
+    en: ['insights', 'dashboard', 'analysis', 'chart'],
+    hi: ['डैशबोर्ड', 'विश्लेषण', 'चार्ट', 'मुख्य', 'ग्राफ'],
+    mr: ['डॅशबोर्ड', 'विश्लेषण', 'चार्ट', 'मुख्य', 'आलेख']
+  }
+};
 
 // ==================== English Patterns ====================
 const ENGLISH_PATTERNS = {
@@ -161,6 +228,56 @@ export const matchIntent = (
   const confidence = context?.recommendation?.confidence || 85;
   const temp = context?.weatherData?.forecast?.[0]?.temp || '28';
   const condition = context?.weatherData?.forecast?.[0]?.condition || 'Partly Cloudy';
+
+  const cleanTranscript = transcript.toLowerCase();
+  const langKey = language === 'en-US' ? 'en' : language === 'hi-IN' ? 'hi' : 'mr';
+  
+  // 1. Check crop selection keywords
+  for (const [cropId, keywordsObj] of Object.entries(CROP_KEYWORDS)) {
+    const keywords = keywordsObj[langKey as keyof typeof keywordsObj];
+    if (keywords.some(kw => cleanTranscript.includes(kw))) {
+      const cName = formatCropName(cropId);
+      const resMsg = language === 'en-US'
+        ? `Switched crop to ${cName}`
+        : language === 'hi-IN'
+        ? `फसल बदलकर ${cName} कर दी गई है`
+        : `पीक बदलून ${cName} केले आहे`;
+        
+      return {
+        intent: 'select_crop',
+        confidence: 0.95,
+        response: resMsg,
+        action: 'select-crop',
+        data: { cropId }
+      };
+    }
+  }
+
+  // 2. Check tab switching keywords
+  for (const [tabId, keywordsObj] of Object.entries(TAB_KEYWORDS)) {
+    const keywords = keywordsObj[langKey as keyof typeof keywordsObj];
+    if (keywords.some(kw => cleanTranscript.includes(kw))) {
+      const tabNames = {
+        marketplace: { 'en-US': 'Marketplace', 'hi-IN': 'बाजार', 'mr-IN': 'बाजार' },
+        mandi: { 'en-US': 'Mandi Feed', 'hi-IN': 'मंडी लाइव', 'mr-IN': 'मंडी लाइव' },
+        insights: { 'en-US': 'Insights', 'hi-IN': 'डैशबोर्ड', 'mr-IN': 'डॅशबोर्ड' }
+      };
+      const tName = tabNames[tabId as keyof typeof tabNames][language];
+      const resMsg = language === 'en-US'
+        ? `Opening ${tName}`
+        : language === 'hi-IN'
+        ? `${tName} खोला जा रहा है`
+        : `${tName} उघडत आहे`;
+
+      return {
+        intent: 'switch_tab',
+        confidence: 0.95,
+        response: resMsg,
+        action: 'switch-tab',
+        data: { tabId }
+      };
+    }
+  }
 
   // Check each intent type
   for (const intentType of ['price', 'recommendation', 'demand', 'weather', 'calculator', 'help'] as const) {

@@ -4,7 +4,7 @@
  */
 
 interface DebugSpeechRecognitionLike {
-  language: string;
+  lang: string;
 }
 
 type DebugSpeechRecognitionConstructor = new () => DebugSpeechRecognitionLike;
@@ -37,10 +37,10 @@ export const voiceDebugger = {
       const recognition = new SpeechRecognition();
       
       // Try to set the language
-      recognition.language = languageCode;
+      recognition.lang = languageCode;
       
       // Check if it was actually set
-      if (recognition.language === languageCode) {
+      if (recognition.lang === languageCode) {
         console.log(`✅ Language ${languageCode} is supported`);
         return {
           supported: true,
@@ -48,11 +48,11 @@ export const voiceDebugger = {
           alternatives: [],
         };
       } else {
-        console.warn(`⚠️ Language ${languageCode} was not set. Got: ${recognition.language}`);
+        console.warn(`⚠️ Language ${languageCode} was not set. Got: ${recognition.lang}`);
         return {
           supported: false,
-          message: `Language ${languageCode} not supported. Browser set to: ${recognition.language}`,
-          alternatives: [recognition.language],
+          message: `Language ${languageCode} not supported. Browser set to: ${recognition.lang}`,
+          alternatives: [recognition.lang],
         };
       }
     } catch (err) {

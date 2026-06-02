@@ -1,6 +1,8 @@
 'use client';
+/* eslint-disable react-hooks/set-state-in-effect */
 
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useVoiceIntent } from '../hooks/useVoiceIntent';
 
 export interface VoiceContextType {
@@ -32,21 +34,36 @@ export const VoiceProvider: React.FC<{
   priceData?: VoicePriceData;
   recommendation?: VoiceRecommendationData;
   weatherData?: VoiceWeatherData;
+  onAction?: (action: string, data?: unknown) => void;
 }> = ({ 
   children, 
   selectedCrop = 'wheat',
   priceData = null,
   recommendation = null,
   weatherData = null,
+  onAction,
 }) => {
   const [language, setLanguageState] = useState<'en-US' | 'hi-IN' | 'mr-IN'>('en-US');
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    const activeLang = i18n.language;
+    if (activeLang === 'hi') {
+      setLanguageState('hi-IN');
+    } else if (activeLang === 'mr') {
+      setLanguageState('mr-IN');
+    } else {
+      setLanguageState('en-US');
+    }
+  }, [i18n.language]);
 
   const voice = useVoiceIntent(
     selectedCrop,
     priceData,
     recommendation,
     weatherData,
-    language
+    language,
+    onAction
   );
 
   const setLanguage = (lang: 'en-US' | 'hi-IN' | 'mr-IN') => {

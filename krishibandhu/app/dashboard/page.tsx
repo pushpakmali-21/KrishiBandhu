@@ -13,7 +13,6 @@ import {
   Handshake,
   Loader2,
   Lock,
-  Mic,
   Star,
   TrendingUp,
   Truck,
@@ -23,6 +22,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useRouter } from 'next/navigation';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import ThemeToggle from '../components/ThemeToggle';
+import { VoiceProvider } from '../context/VoiceContext';
+import { VoiceAssistant } from '../components/VoiceAssistant';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000/api';
 const TRANSPORT_RATE_PER_QTL_KM = 50;
@@ -187,8 +189,6 @@ function DashboardContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [pinnedCrop, setPinnedCrop] = useState<CropId | null>(null);
   const [showPlannerModal, setShowPlannerModal] = useState(false);
-  const [isListening, setIsListening] = useState(false);
-  const [voiceStatus, setVoiceStatus] = useState('');
   const tabs: { id: TabId; label: string; Icon: typeof BarChart3 }[] = [
     { id: 'insights', label: t('tabs.insights'), Icon: BarChart3 },
     { id: 'marketplace', label: t('tabs.marketplace'), Icon: Handshake },
@@ -252,6 +252,21 @@ function DashboardContent() {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
+  // Synchronize calculator inputs with farmer inputs when the calculator modal opens
+  useEffect(() => {
+    if (showCalcModal) {
+      if (farmerInputs.quantity) {
+        setCalcYield(farmerInputs.quantity);
+      }
+      if (farmerInputs.distance) {
+        setCalcDistance(farmerInputs.distance);
+      }
+      if (farmerInputs.transportMode) {
+        setCalcTransportMode(farmerInputs.transportMode);
+      }
+    }
+  }, [showCalcModal, farmerInputs]);
+
   const quantityNum = parseFloat(farmerInputs.quantity) || 0;
   const distanceNum = parseFloat(farmerInputs.distance) || 0;
   const dashboardTransportCost =
@@ -271,87 +286,36 @@ function DashboardContent() {
     setPinnedCrop(selectedCrop);
   };
 
-  const applyVoiceCommand = (transcript: string) => {
-    const spoken = transcript.toLowerCase();
-    const matchedCrop = cropGroups
-      .flatMap((group) => group.items)
-      .find((crop) => spoken.includes(crop.toLowerCase()) || spoken.includes(t(`dashboard.crops.${crop}`).toLowerCase()));
-
-    if (matchedCrop) {
-      setSelectedCrop(matchedCrop);
-      setVoiceStatus(`Selected ${t(`dashboard.crops.${matchedCrop}`)}`);
-      return;
-    }
-
-    if (spoken.includes('market')) {
-      setCurrentTab('marketplace');
-      setVoiceStatus('Opened marketplace');
-      return;
-    }
-
-    if (spoken.includes('mandi')) {
-      setCurrentTab('mandi');
-      setVoiceStatus('Opened mandi feed');
-      return;
-    }
-
-    if (spoken.includes('insight') || spoken.includes('dashboard')) {
+  const handleVoiceAction = useCallback((action: string, data?: unknown) => {
+    console.log('🎙️ Voice Action matched:', action, data);
+    const payload = data as Record<string, unknown> | undefined;
+    
+    if (action === 'select-crop' && payload && typeof payload.cropId === 'string') {
+      if (isCropId(payload.cropId)) {
+        setSelectedCrop(payload.cropId);
+      }
+    } else if (action === 'switch-tab' && payload && typeof payload.tabId === 'string') {
+      if (isTabId(payload.tabId)) {
+        setCurrentTab(payload.tabId);
+      }
+    } else if (action === 'open-calculator') {
+      setShowCalcModal(true);
+    } else if (action === 'scroll-heatmap') {
       setCurrentTab('insights');
-      setVoiceStatus('Opened insights');
-      return;
+      setTimeout(() => {
+        const el = document.getElementById('demand-heatmap');
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else if (action === 'highlight-price' || action === 'highlight-recommendation' || action === 'highlight-weather') {
+      setCurrentTab('insights');
     }
-
-    if (spoken.includes('recommend') && recommendation) {
-      const message = `${recommendation.recommendation}. ${recommendation.reasoning}`;
-      window.speechSynthesis?.cancel();
-      window.speechSynthesis?.speak(new SpeechSynthesisUtterance(message));
-      setVoiceStatus(t('voice.reading'));
-      return;
-    }
-
-    setVoiceStatus('Try saying wheat, marketplace, mandi, or recommendation.');
-  };
-
-  const startVoiceAssistant = () => {
-    const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!Recognition) {
-      setVoiceStatus(t('voice.not_supported'));
-      return;
-    }
-
-    const recognition = new Recognition();
-    recognition.lang = 'en-IN';
-    recognition.interimResults = false;
-    setIsListening(true);
-    setVoiceStatus(t('voice.listening'));
-    recognition.onstart = () => {
-      setIsListening(true);
-      setVoiceStatus(t('voice.listening'));
-    };
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      applyVoiceCommand(transcript);
-    };
-    recognition.onerror = () => {
-      setVoiceStatus('Voice command failed. Please try again.');
-    };
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-    try {
-      recognition.start();
-    } catch {
-      setIsListening(false);
-      setVoiceStatus('Voice could not start. Please try again.');
-    }
-  };
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-green-50">
-        <Loader2 className="w-12 h-12 text-green-600 animate-spin mb-4" />
-        <p className="text-green-800 font-semibold text-lg">Harvesting latest data...</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-green-50 dark:bg-gray-950">
+        <Loader2 className="w-12 h-12 text-green-600 dark:text-green-400 animate-spin mb-4" />
+        <p className="text-green-800 dark:text-green-300 font-semibold text-lg">Harvesting latest data...</p>
       </div>
     );
   }
@@ -359,29 +323,37 @@ function DashboardContent() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
+    <VoiceProvider
+      selectedCrop={selectedCrop}
+      priceData={priceData}
+      recommendation={recommendation}
+      weatherData={weatherData}
+      onAction={handleVoiceAction}
+    >
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-30 shadow-sm border-b border-green-100">
+      <header className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md sticky top-0 z-30 shadow-sm dark:shadow-gray-950/40 border-b border-green-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-black text-green-800 tracking-tight" suppressHydrationWarning>{t('nav.brand')}</h1>
-            <p className="text-xs font-bold text-green-600 uppercase tracking-widest" suppressHydrationWarning>{t('dashboard.subtitle')}</p>
+            <h1 className="text-2xl font-black text-green-800 dark:text-green-400 tracking-tight" suppressHydrationWarning>{t('nav.brand')}</h1>
+            <p className="text-xs font-bold text-green-600 dark:text-green-500 uppercase tracking-widest" suppressHydrationWarning>{t('dashboard.subtitle')}</p>
           </div>
           <div className="hidden md:flex gap-3 items-center">
-            <span className="flex items-center gap-2 text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full" suppressHydrationWarning>
+            <span className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full" suppressHydrationWarning>
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
               {t('nav.live_mandi')}
             </span>
             <button
               onClick={() => setShowPlannerModal(true)}
-              className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-200 px-4 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-amber-100 transition-colors"
+              className="inline-flex items-center gap-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 px-4 py-2 rounded-lg font-bold text-sm shadow-sm hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
               suppressHydrationWarning
             >
               <CalendarDays className="w-4 h-4" />
               {t('planner.button')}
             </button>
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md" suppressHydrationWarning>{t('nav.nashik_hub')}</button>
+            <button className="bg-green-600 dark:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md" suppressHydrationWarning>{t('nav.nashik_hub')}</button>
             <LanguageSwitcher />
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -390,14 +362,14 @@ function DashboardContent() {
       <div className="max-w-7xl mx-auto px-6 py-8">
 
         {/* Tab Navigation */}
-        <div className="flex gap-1 mb-8 bg-white/50 p-1.5 rounded-2xl border border-green-100 max-w-fit mx-auto shadow-sm">
+        <div className="flex gap-1 mb-8 bg-white/50 dark:bg-gray-800/50 p-1.5 rounded-2xl border border-green-100 dark:border-gray-700 max-w-fit mx-auto shadow-sm">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setCurrentTab(tab.id)}
               className={`px-6 py-3 rounded-xl font-black text-sm transition-all flex items-center gap-2 ${currentTab === tab.id
-                ? 'bg-green-600 text-white shadow-xl shadow-green-200'
-                : 'text-gray-500 hover:bg-white hover:text-green-600'
+                ? 'bg-green-600 text-white shadow-xl shadow-green-200 dark:shadow-green-900/40'
+                : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:text-green-600 dark:hover:text-green-400'
                 }`}
             >
               <tab.Icon className="w-4 h-4" />
@@ -413,13 +385,13 @@ function DashboardContent() {
                 <div className="flex items-center gap-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="text-2xl font-extrabold text-gray-800" suppressHydrationWarning>{t('dashboard.crop_analysis')}</h2>
+                      <h2 className="text-2xl font-extrabold text-gray-800 dark:text-white" suppressHydrationWarning>{t('dashboard.crop_analysis')}</h2>
                       <button
                         type="button"
                         onClick={togglePinnedCrop}
                         className={`p-2 rounded-full border transition-colors ${pinnedCrop === selectedCrop
-                          ? 'bg-amber-50 text-amber-500 border-amber-200'
-                          : 'bg-white text-gray-400 border-gray-200 hover:text-amber-500'
+                          ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-500 border-amber-200 dark:border-amber-800'
+                          : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 hover:text-amber-500'
                           }`}
                         aria-label={pinnedCrop === selectedCrop ? 'Remove pinned crop' : 'Pin crop to watchlist'}
                         title={pinnedCrop === selectedCrop ? 'Remove pinned crop' : 'Pin crop to watchlist'}
@@ -433,13 +405,13 @@ function DashboardContent() {
                   </div>
                   <button
                     onClick={() => setShowInputModal(true)}
-                    className="text-xs font-bold text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100 hover:bg-green-100 transition-colors"
+                    className="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-3 py-1.5 rounded-full border border-green-100 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors"
                     suppressHydrationWarning
                   >
                     {t('dashboard.edit_inputs')}
                   </button>
                 </div>
-                <div className="bg-white p-1 rounded-xl shadow-inner border border-gray-100 relative min-w-[220px] shadow-sm hover:shadow-md transition-shadow">
+                <div className="bg-white dark:bg-gray-800 p-1 rounded-xl shadow-inner border border-gray-100 dark:border-gray-700 relative min-w-[220px] shadow-sm hover:shadow-md transition-shadow">
                   <select
                     value={selectedCrop}
                     onChange={(e) => {
@@ -447,7 +419,7 @@ function DashboardContent() {
                         setSelectedCrop(e.target.value);
                       }
                     }}
-                    className="w-full bg-transparent px-4 py-2.5 rounded-lg font-black text-sm text-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer z-10 relative"
+                    className="w-full bg-transparent px-4 py-2.5 rounded-lg font-black text-sm text-green-800 dark:text-green-300 focus:outline-none focus:ring-2 focus:ring-green-500 appearance-none cursor-pointer z-10 relative"
                   >
                     {cropGroups.map((group) => (
                       <optgroup key={group.key} label={t(`dashboard.crop_groups.${group.key}`)}>
@@ -467,10 +439,10 @@ function DashboardContent() {
             </div>
 
             {error ? (
-              <div className="bg-white rounded-3xl p-12 border border-red-100 shadow-sm text-center max-w-2xl mx-auto my-12 animate-in fade-in duration-500">
+              <div className="bg-white dark:bg-gray-800/80 rounded-3xl p-12 border border-red-100 dark:border-red-900/30 shadow-sm text-center max-w-2xl mx-auto my-12 animate-in fade-in duration-500">
                 <p className="text-6xl mb-6">⚠️</p>
-                <h2 className="text-2xl font-black text-red-800 mb-4">Data Unavailable</h2>
-                <p className="text-gray-600 font-medium leading-relaxed mb-8">{error}</p>
+                <h2 className="text-2xl font-black text-red-800 dark:text-red-400 mb-4">Data Unavailable</h2>
+                <p className="text-gray-600 dark:text-gray-400 font-medium leading-relaxed mb-8">{error}</p>
                 <button
                   onClick={fetchDashboardData}
                   className="bg-green-600 text-white px-8 py-3.5 rounded-xl font-black text-sm hover:bg-green-700 transition shadow-lg shadow-green-200 hover:shadow-green-300"
@@ -482,37 +454,37 @@ function DashboardContent() {
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                 {/* Key Metrics Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                  <button onClick={() => setShowCalcModal(true)} className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-all hover:scale-[1.02] hover:border-green-300 hover:shadow-green-100 cursor-pointer text-left w-full group">
+                  <button onClick={() => setShowCalcModal(true)} className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm transition-all hover:scale-[1.02] hover:border-green-300 dark:hover:border-green-700 hover:shadow-green-100 dark:hover:shadow-green-900/20 cursor-pointer text-left w-full group">
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest" suppressHydrationWarning>{t('metrics.current_price')}</p>
                     <div className="flex items-end gap-2 mt-2">
-                      <span className="text-4xl font-black text-green-800">{formatCurrency(priceData?.current || 0)}</span>
-                      <span className="text-gray-500 font-medium pb-1.5">{t('dashboard.metrics.per_quintal')}</span>
+                      <span className="text-4xl font-black text-green-800 dark:text-green-300">{formatCurrency(priceData?.current || 0)}</span>
+                      <span className="text-gray-500 dark:text-gray-400 font-medium pb-1.5">{t('dashboard.metrics.per_quintal')}</span>
                     </div>
                     <p className="text-[10px] font-bold text-green-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">{t('profit_calculator.open_hint')}</p>
                   </button>
 
-                  <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02]">
+                  <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.02]">
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('dashboard.metrics.forecast_peak')}</p>
                     <div className="flex items-end gap-2 mt-2">
-                      <span className="text-4xl font-black text-blue-800">{formatCurrency(Math.max(...(priceData?.forecast || [0])))}</span>
-                      <TrendingUp className="w-6 h-6 text-blue-500 mb-2" />
+                      <span className="text-4xl font-black text-blue-800 dark:text-blue-300">{formatCurrency(Math.max(...(priceData?.forecast || [0])))}</span>
+                      <TrendingUp className="w-6 h-6 text-blue-500 dark:text-blue-400 mb-2" />
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02]">
+                  <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.02]">
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('metrics.market_volatility')}</p>
                     <div className="flex items-end gap-3 mt-2">
-                      <span className="text-4xl font-black text-orange-600">{priceData?.volatility}%</span>
+                      <span className="text-4xl font-black text-orange-600 dark:text-orange-400">{priceData?.volatility}%</span>
                       <div className="flex flex-col text-[10px] font-bold text-gray-400 leading-none pb-1">
                         <span>{priceData && priceData.volatility > 4 ? t('dashboard.metrics.high_risk') : t('dashboard.metrics.low_risk')}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02]">
+                  <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.02]">
                     <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('profit_calculator.estimated_net_profit')}</p>
                     <div className="mt-2">
-                      <span className="text-3xl font-black text-emerald-700">
+                      <span className="text-3xl font-black text-emerald-700 dark:text-emerald-400">
                         {quantityNum > 0 ? formatCurrency(dashboardNetProfit) : '--'}
                       </span>
                     </div>
@@ -523,25 +495,25 @@ function DashboardContent() {
                     </p>
                   </div>
 
-                  <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm transition-transform hover:scale-[1.02] col-span-1 md:col-span-4">
+                  <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm transition-transform hover:scale-[1.02] col-span-1 md:col-span-4">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                       <div className="flex items-center gap-4">
-                        <div className="bg-blue-50 p-4 rounded-2xl text-blue-600">
+                        <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-2xl text-blue-600 dark:text-blue-400">
                           <Truck className="w-6 h-6" />
                         </div>
                         <div>
                           <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{t('weather.weather_context')}</p>
-                          <h4 className="text-2xl font-black text-gray-800">{weatherData?.forecast[0].temp}&deg;C - {weatherData?.forecast[0].condition}</h4>
-                          <p className="text-[10px] font-bold text-gray-500 uppercase mt-1">{t('weather.location_nashik')}</p>
+                          <h4 className="text-2xl font-black text-gray-800 dark:text-white">{weatherData?.forecast[0].temp}&deg;C - {weatherData?.forecast[0].condition}</h4>
+                          <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase mt-1">{t('weather.location_nashik')}</p>
                         </div>
                       </div>
 
                       {weatherData?.forecast.some((f) => f.rainfall > 5) && (
-                        <div className="flex-1 w-full bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center gap-4 animate-pulse">
-                          <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600 text-xl font-bold">!</div>
+                        <div className="flex-1 w-full bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 p-4 rounded-2xl flex items-center gap-4 animate-pulse">
+                          <div className="w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-xl flex items-center justify-center text-red-600 dark:text-red-400 text-xl font-bold">!</div>
                           <div>
-                            <p className="text-xs font-black text-red-700 uppercase tracking-widest leading-none mb-1">{t('weather.alert_title')}</p>
-                            <p className="text-xs text-red-600 font-bold">{t('weather.alert_desc')}</p>
+                            <p className="text-xs font-black text-red-700 dark:text-red-400 uppercase tracking-widest leading-none mb-1">{t('weather.alert_title')}</p>
+                            <p className="text-xs text-red-600 dark:text-red-300 font-bold">{t('weather.alert_desc')}</p>
                           </div>
                         </div>
                       )}
@@ -549,11 +521,11 @@ function DashboardContent() {
                       <div className="flex gap-4">
                         <div className="text-center">
                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-1">{t('weather.humidity')}</p>
-                          <p className="text-lg font-black text-gray-700">{weatherData?.forecast[0].humidity}%</p>
+                          <p className="text-lg font-black text-gray-700 dark:text-gray-200">{weatherData?.forecast[0].humidity}%</p>
                         </div>
                         <div className="text-center">
                           <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mb-1">{t('weather.rainfall')}</p>
-                          <p className="text-lg font-black text-gray-700">{weatherData?.forecast[0].rainfall}mm</p>
+                          <p className="text-lg font-black text-gray-700 dark:text-gray-200">{weatherData?.forecast[0].rainfall}mm</p>
                         </div>
                       </div>
                     </div>
@@ -566,25 +538,25 @@ function DashboardContent() {
                   {/* Recommendation */}
                   <div className="lg:col-span-2">
                     <div className={`h-full rounded-3xl p-8 border-2 flex flex-col justify-center ${recommendation?.recommendation === 'WAIT'
-                      ? 'bg-blue-50/50 border-blue-200'
-                      : 'bg-green-50/50 border-green-200'
+                      ? 'bg-blue-50/50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                      : 'bg-green-50/50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                       }`}>
                       <div className="flex items-center gap-3 mb-4">
-                        <Zap className={`w-6 h-6 ${recommendation?.recommendation === 'WAIT' ? 'text-blue-600' : 'text-green-600'}`} />
+                        <Zap className={`w-6 h-6 ${recommendation?.recommendation === 'WAIT' ? 'text-blue-600 dark:text-blue-400' : 'text-green-600 dark:text-green-400'}`} />
                         <span className="text-xs font-black uppercase tracking-[0.2em] opacity-60">{t('dashboard.recommendation.label')}</span>
                       </div>
-                      <h3 className={`text-3xl font-black mb-3 ${recommendation?.recommendation === 'WAIT' ? 'text-blue-900' : 'text-green-900'}`}>
+                      <h3 className={`text-3xl font-black mb-3 ${recommendation?.recommendation === 'WAIT' ? 'text-blue-900 dark:text-blue-300' : 'text-green-900 dark:text-green-300'}`}>
                         {recommendation?.recommendation === 'WAIT' ? t('dashboard.recommendation.wait') : t('dashboard.recommendation.sell_now')}
                       </h3>
-                      <p className="text-gray-700 font-medium leading-relaxed mb-6">
+                      <p className="text-gray-700 dark:text-gray-300 font-medium leading-relaxed mb-6">
                         {recommendation?.reasoning}
                       </p>
-                      <div className="pt-6 border-t border-dashed border-gray-200">
+                      <div className="pt-6 border-t border-dashed border-gray-200 dark:border-gray-700">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-gray-500">{t('dashboard.recommendation.confidence')}</span>
-                          <span className="text-lg font-black text-gray-800">{recommendation?.confidence}%</span>
+                          <span className="text-sm font-bold text-gray-500 dark:text-gray-400">{t('dashboard.recommendation.confidence')}</span>
+                          <span className="text-lg font-black text-gray-800 dark:text-white">{recommendation?.confidence}%</span>
                         </div>
-                        <div className="w-full bg-gray-200 h-2 rounded-full mt-2 overflow-hidden">
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 h-2 rounded-full mt-2 overflow-hidden">
                           <div
                             className={`h-full rounded-full transition-all duration-1000 ${recommendation?.recommendation === 'WAIT' ? 'bg-blue-600' : 'bg-green-600'}`}
                             style={{ width: `${recommendation?.confidence}%` }}
@@ -595,10 +567,10 @@ function DashboardContent() {
                   </div>
 
                   {/* Price Chart */}
-                  <div className="lg:col-span-3 bg-white rounded-3xl p-8 border border-green-100 shadow-sm">
-                    <h3 className="text-lg font-black text-gray-800 mb-8 flex items-center justify-between">
+                  <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm">
+                    <h3 className="text-lg font-black text-gray-800 dark:text-white mb-8 flex items-center justify-between">
                       <span>{t('dashboard.chart.title')}</span>
-                      <span className="text-xs bg-gray-100 px-3 py-1 rounded-full font-bold text-gray-500 uppercase tracking-widest">{t('dashboard.chart.window')}</span>
+                      <span className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t('dashboard.chart.window')}</span>
                     </h3>
                     <div className="h-[300px]">
                       <ResponsiveContainer width="100%" height="100%">
@@ -638,9 +610,9 @@ function DashboardContent() {
                 </div>
 
                 {/* Demand Section */}
-                <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm">
+                <div id="demand-heatmap" className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                    <h3 className="text-lg font-black text-gray-800 uppercase tracking-widest">{t('dashboard.heatmap.title')}</h3>
+                    <h3 className="text-lg font-black text-gray-800 dark:text-white uppercase tracking-widest">{t('dashboard.heatmap.title')}</h3>
                     <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
                       <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-red-500 rounded-sm"></span> {t('dashboard.heatmap.high')}</span>
                       <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 bg-yellow-500 rounded-sm"></span> {t('dashboard.heatmap.medium')}</span>
@@ -655,10 +627,10 @@ function DashboardContent() {
                           <div className={`h-16 rounded-xl flex items-center justify-center transition-all ${bg} opacity-10 blur-[2px] group-hover:blur-0 group-hover:opacity-100`}>
                             <span className="text-white font-black text-xs">{level}</span>
                           </div>
-                          <div className={`absolute inset-0 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all p-2 ${level === 'HIGH' ? 'border-red-200' : level === 'MEDIUM' ? 'border-yellow-200' : 'border-blue-200'
-                            } group-hover:bg-transparent bg-white group-hover:border-transparent`}>
+                          <div className={`absolute inset-0 rounded-xl border-2 border-dashed flex flex-col items-center justify-center transition-all p-2 ${level === 'HIGH' ? 'border-red-200 dark:border-red-800' : level === 'MEDIUM' ? 'border-yellow-200 dark:border-yellow-800' : 'border-blue-200 dark:border-blue-800'
+                            } group-hover:bg-transparent bg-white dark:bg-gray-800 group-hover:border-transparent`}>
                             <span className="text-[10px] font-black text-gray-400 mb-1">{t('dashboard.heatmap.day')} {i + 1}</span>
-                            <span className={`text-xs font-black ${level === 'HIGH' ? 'text-red-600' : level === 'MEDIUM' ? 'text-yellow-600' : 'text-blue-600'
+                            <span className={`text-xs font-black ${level === 'HIGH' ? 'text-red-600 dark:text-red-400' : level === 'MEDIUM' ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400'
                               }`}>{level}</span>
                           </div>
                         </div>
@@ -676,17 +648,17 @@ function DashboardContent() {
           <div className="animate-in fade-in duration-500">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
               <div>
-                <h2 className="text-2xl font-black text-gray-800" suppressHydrationWarning>{t('marketplace.title')}</h2>
-                <p className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-1" suppressHydrationWarning>{t('marketplace.subtitle')}</p>
+                <h2 className="text-2xl font-black text-gray-800 dark:text-white" suppressHydrationWarning>{t('marketplace.title')}</h2>
+                <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1" suppressHydrationWarning>{t('marketplace.subtitle')}</p>
               </div>
               <div className="flex gap-2">
-                <select className="bg-white border border-green-100 rounded-xl px-4 py-2 text-sm font-bold text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <select className="bg-white dark:bg-gray-800 border border-green-100 dark:border-gray-700 rounded-xl px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                   <option>{t('marketplace.filter_all_locations')}</option>
                   <option>Nashik</option>
                   <option>Pune</option>
                   <option>Mumbai</option>
                 </select>
-                <select className="bg-white border border-green-100 rounded-xl px-4 py-2 text-sm font-bold text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <select className="bg-white dark:bg-gray-800 border border-green-100 dark:border-gray-700 rounded-xl px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
                   <option>{t('marketplace.filter_trust_score')}</option>
                   <option>90+ (High)</option>
                   <option>80+ (Medium)</option>
@@ -696,22 +668,22 @@ function DashboardContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {buyers.map((buyer, i) => (
-                <div key={i} className="bg-white rounded-3xl p-6 border border-green-100 shadow-sm hover:shadow-xl hover:shadow-green-900/5 transition-all group">
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-green-100 dark:border-gray-700 shadow-sm hover:shadow-xl hover:shadow-green-900/5 dark:hover:shadow-black/20 transition-all group">
                   <div className="flex justify-between items-start mb-6">
-                    <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-700">
+                    <div className="w-12 h-12 bg-green-50 dark:bg-green-950 rounded-2xl flex items-center justify-center text-green-700 dark:text-green-400">
                       <Building2 className="w-6 h-6" />
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${buyer.trust > 90 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${buyer.trust > 90 ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' : 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'}`}>
                       Trust: {buyer.trust}%
                     </div>
                   </div>
-                  <h4 className="text-lg font-black text-gray-800 mb-1">{buyer.name}</h4>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{buyer.loc}</p>
+                  <h4 className="text-lg font-black text-gray-800 dark:text-white mb-1">{buyer.name}</h4>
+                  <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-4">{buyer.loc}</p>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-100">
+                  <div className="flex justify-between items-center pt-4 border-t border-dashed border-gray-100 dark:border-gray-700">
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase leading-none mb-1">Buying Price</p>
-                      <p className={`text-sm font-black ${buyer.price.includes('+') ? 'text-green-600' : 'text-gray-600'}`}>
+                      <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase leading-none mb-1">Buying Price</p>
+                      <p className={`text-sm font-black ${buyer.price.includes('+') ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-300'}`}>
                         {buyer.price}
                       </p>
                     </div>
@@ -723,7 +695,7 @@ function DashboardContent() {
                           router.push('/login?redirect=/dashboard&tab=marketplace');
                         }
                       }}
-                      className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg group-hover:bg-green-600 transition-colors"
+                      className="bg-gray-900 dark:bg-gray-700 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg group-hover:bg-green-600 dark:group-hover:bg-green-700 transition-colors"
                     >
                       <span className="inline-flex items-center gap-1.5">
                         {!isLoggedIn && <Lock className="w-3.5 h-3.5" />}
@@ -740,23 +712,23 @@ function DashboardContent() {
         {/* Live Mandi Tab */}
         {currentTab === 'mandi' && (
           <div className="animate-in fade-in duration-500">
-            <div className="bg-white rounded-3xl p-8 border border-green-100 shadow-sm">
-              <h2 className="text-2xl font-black text-gray-800 mb-6">{t('mandi.live_trades')}</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm">
+              <h2 className="text-2xl font-black text-gray-800 dark:text-white mb-6">{t('mandi.live_trades')}</h2>
               <div className="space-y-4">
                 {liveTrades.map((trade, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 border border-gray-100">
+                  <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center font-black text-green-600">
+                      <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-xl shadow-sm flex items-center justify-center font-black text-green-600 dark:text-green-400">
                         {t(`dashboard.crops.${trade.crop}`).charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-black text-gray-800">{t(`dashboard.crops.${trade.crop}`)} - {trade.vol}</p>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{trade.mandi} Mandi | {trade.time}</p>
+                        <p className="text-sm font-black text-gray-800 dark:text-gray-200">{t(`dashboard.crops.${trade.crop}`)} - {trade.vol}</p>
+                        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{trade.mandi} Mandi | {trade.time}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-black text-green-700">{formatCurrency(trade.price)}</p>
-                      <p className="text-[10px] font-bold text-green-500 uppercase tracking-tighter">Verified Trade</p>
+                      <p className="text-lg font-black text-green-700 dark:text-green-400">{formatCurrency(trade.price)}</p>
+                      <p className="text-[10px] font-bold text-green-500 dark:text-green-400 uppercase tracking-tighter">Verified Trade</p>
                     </div>
                   </div>
                 ))}
@@ -768,35 +740,35 @@ function DashboardContent() {
       </div>      {/* Farmer Input Modal */}
       {showInputModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border border-transparent dark:border-gray-700">
             <div className="p-8">
-              <h3 className="text-2xl font-black text-gray-900 mb-6">{t('farmer_form.title')}</h3>
+              <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-6">{t('farmer_form.title')}</h3>
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.quantity_label')}</label>
+                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('farmer_form.quantity_label')}</label>
                   <input
                     type="number"
                     placeholder={t('farmer_form.quantity_placeholder')}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                     value={farmerInputs.quantity}
                     onChange={(e) => setFarmerInputs({ ...farmerInputs, quantity: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.distance_label')}</label>
+                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('farmer_form.distance_label')}</label>
                   <input
                     type="number"
                     placeholder={t('farmer_form.distance_placeholder')}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                    className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                     value={farmerInputs.distance}
                     onChange={(e) => setFarmerInputs({ ...farmerInputs, distance: e.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.transport_label')}</label>
+                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('farmer_form.transport_label')}</label>
                   <div className="grid grid-cols-2 gap-2">
                     {(['self', 'buyer'] as TransportMode[]).map((mode) => (
                       <button
@@ -804,8 +776,8 @@ function DashboardContent() {
                         key={mode}
                         onClick={() => setFarmerInputs({ ...farmerInputs, transportMode: mode })}
                         className={`py-3 rounded-xl text-xs font-black transition-all ${farmerInputs.transportMode === mode
-                          ? 'bg-green-600 text-white shadow-lg shadow-green-200'
-                          : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-200 dark:shadow-green-900/40'
+                          : 'bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                           }`}
                       >
                         {mode === 'self' ? t('farmer_form.transport_self') : t('farmer_form.transport_buyer')}
@@ -816,9 +788,9 @@ function DashboardContent() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.quality_label')}</label>
+                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('farmer_form.quality_label')}</label>
                     <select
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all appearance-none"
+                      className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all appearance-none"
                       value={farmerInputs.quality}
                       onChange={(e) => setFarmerInputs({ ...farmerInputs, quality: e.target.value })}
                     >
@@ -828,9 +800,9 @@ function DashboardContent() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.storage_label')}</label>
+                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('farmer_form.storage_label')}</label>
                     <select
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all appearance-none"
+                      className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all appearance-none"
                       value={farmerInputs.storage}
                       onChange={(e) => setFarmerInputs({ ...farmerInputs, storage: e.target.value })}
                     >
@@ -842,11 +814,11 @@ function DashboardContent() {
 
                 {farmerInputs.storage === 'Stored' && (
                   <div className="animate-in slide-in-from-top-2 duration-300">
-                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.days_label')}</label>
+                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('farmer_form.days_label')}</label>
                     <input
                       type="number"
                       placeholder={t('farmer_form.days_placeholder')}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                      className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                       value={farmerInputs.daysInStorage}
                       onChange={(e) => setFarmerInputs({ ...farmerInputs, daysInStorage: e.target.value })}
                     />
@@ -854,15 +826,15 @@ function DashboardContent() {
                 )}
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.urgency_label')}</label>
+                  <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('farmer_form.urgency_label')}</label>
                   <div className="grid grid-cols-3 gap-2">
                     {['Immediate', '3Days', 'Flexible'].map((u) => (
                       <button
                         key={u}
                         onClick={() => setFarmerInputs({ ...farmerInputs, urgency: u })}
                         className={`py-3 rounded-xl text-xs font-black transition-all ${farmerInputs.urgency === u
-                          ? 'bg-green-600 text-white shadow-lg shadow-green-200'
-                          : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-200 dark:shadow-green-900/40'
+                          : 'bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                           }`}
                       >
                         {t(`farmer_form.urgency_${u.toLowerCase()}`)}
@@ -875,13 +847,13 @@ function DashboardContent() {
               <div className="flex gap-3 mt-10">
                 <button
                   onClick={() => setShowInputModal(false)}
-                  className="flex-1 py-4 rounded-2xl font-black text-gray-500 hover:bg-gray-50 transition-all"
+                  className="flex-1 py-4 rounded-2xl font-black text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
                 >
                   {t('farmer_form.cancel')}
                 </button>
                 <button
                   onClick={() => setShowInputModal(false)}
-                  className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-green-200 hover:bg-green-700 transition-all"
+                  className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-green-200 dark:shadow-green-900/40 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 transition-all"
                 >
                   {t('farmer_form.save')}
                 </button>
@@ -893,11 +865,11 @@ function DashboardContent() {
       {/* Profit Calculator Modal */}
       {showCalcModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border border-transparent dark:border-gray-700">
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black text-gray-900">{t('profit_calculator.title')}</h3>
-                <button onClick={() => setShowCalcModal(false)} className="text-gray-400 hover:text-gray-600 font-bold" aria-label="Close profit calculator">
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white">{t('profit_calculator.title')}</h3>
+                <button onClick={() => setShowCalcModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-bold" aria-label="Close profit calculator">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -905,28 +877,28 @@ function DashboardContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('profit_calculator.yield_label')}</label>
+                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('profit_calculator.yield_label')}</label>
                     <input
                       type="number"
                       placeholder={t('profit_calculator.yield_placeholder')}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                      className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                       value={calcYield}
                       onChange={(e) => setCalcYield(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('profit_calculator.distance_label')}</label>
+                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('profit_calculator.distance_label')}</label>
                     <input
                       type="number"
                       placeholder={t('profit_calculator.distance_placeholder')}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                      className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                       value={calcDistance}
                       onChange={(e) => setCalcDistance(e.target.value)}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('farmer_form.transport_label')}</label>
+                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('farmer_form.transport_label')}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {(['self', 'buyer'] as TransportMode[]).map((mode) => (
                         <button
@@ -934,8 +906,8 @@ function DashboardContent() {
                           key={mode}
                           onClick={() => setCalcTransportMode(mode)}
                           className={`py-3 rounded-xl text-xs font-black transition-all ${calcTransportMode === mode
-                            ? 'bg-green-600 text-white shadow-lg shadow-green-200'
-                            : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                            ? 'bg-green-600 text-white shadow-lg shadow-green-200 dark:shadow-green-900/40'
+                            : 'bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
                             }`}
                         >
                           {mode === 'self' ? t('farmer_form.transport_self') : t('farmer_form.transport_buyer')}
@@ -944,9 +916,9 @@ function DashboardContent() {
                     </div>
                   </div>
 
-                  <div className="bg-orange-50 rounded-2xl p-4 border border-orange-100">
-                    <p className="text-xs font-bold text-orange-700 leading-relaxed uppercase tracking-widest mb-1">{t('profit_calculator.risk_low')}</p>
-                    <p className="text-xs text-orange-600 font-medium">8.8% gain with {priceData?.volatility}% volatility = LOW RISK advice.</p>
+                  <div className="bg-orange-50 dark:bg-orange-950/20 rounded-2xl p-4 border border-orange-100 dark:border-orange-900/30">
+                    <p className="text-xs font-bold text-orange-700 dark:text-orange-400 leading-relaxed uppercase tracking-widest mb-1">{t('profit_calculator.risk_low')}</p>
+                    <p className="text-xs text-orange-600 dark:text-orange-300 font-medium">8.8% gain with {priceData?.volatility}% volatility = LOW RISK advice.</p>
                   </div>
                 </div>
 
@@ -962,27 +934,27 @@ function DashboardContent() {
                     const net = Math.max(0, gross - freight);
 
                     return (
-                      <div key={i} className={`rounded-2xl p-5 border ${option.color === 'green' ? 'bg-green-50/50 border-green-200' : 'bg-blue-50/50 border-blue-200 shadow-lg shadow-blue-100'}`}>
-                        <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-3 ${option.color === 'green' ? 'text-green-600' : 'text-blue-600'}`}>
+                      <div key={i} className={`rounded-2xl p-5 border ${option.color === 'green' ? 'bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-800' : 'bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 shadow-lg shadow-blue-100 dark:shadow-none'}`}>
+                        <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-3 ${option.color === 'green' ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
                           {option.label}
                         </p>
                         <div className="flex justify-between items-end mb-4">
-                          <span className={`text-2xl font-black ${option.color === 'green' ? 'text-green-900' : 'text-blue-900'}`}>
+                          <span className={`text-2xl font-black ${option.color === 'green' ? 'text-green-900 dark:text-green-300' : 'text-blue-900 dark:text-blue-300'}`}>
                             {formatCurrency(net)}
                           </span>
-                          <span className="text-[10px] font-bold text-gray-400 lowercase">{t('profit_calculator.net_profit')}</span>
+                          <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 lowercase">{t('profit_calculator.net_profit')}</span>
                         </div>
-                        <div className="space-y-1 pt-3 border-t border-dashed border-gray-200">
+                        <div className="space-y-1 pt-3 border-t border-dashed border-gray-200 dark:border-gray-700">
                           <div className="flex justify-between text-[10px] font-bold">
-                            <span className="text-gray-400 uppercase">{t('profit_calculator.gross')}</span>
-                            <span className="text-gray-600">{formatCurrency(gross)}</span>
+                            <span className="text-gray-400 dark:text-gray-500 uppercase">{t('profit_calculator.gross')}</span>
+                            <span className="text-gray-600 dark:text-gray-300">{formatCurrency(gross)}</span>
                           </div>
                           <div className="flex justify-between text-[10px] font-bold">
-                            <span className="text-gray-400 uppercase">{t('profit_calculator.freight')}</span>
-                            <span className="text-gray-600">- {formatCurrency(freight)}</span>
+                            <span className="text-gray-400 dark:text-gray-500 uppercase">{t('profit_calculator.freight')}</span>
+                            <span className="text-gray-600 dark:text-gray-300">- {formatCurrency(freight)}</span>
                           </div>
                           {calcTransportMode === 'buyer' && (
-                            <p className="text-[10px] font-bold text-blue-600 pt-2">{t('profit_calculator.buyer_pickup_note')}</p>
+                            <p className="text-[10px] font-bold text-blue-600 dark:text-blue-400 pt-2">{t('profit_calculator.buyer_pickup_note')}</p>
                           )}
                         </div>
                       </div>
@@ -994,7 +966,7 @@ function DashboardContent() {
               <div className="mt-10">
                 <button
                   onClick={() => setShowCalcModal(false)}
-                  className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-black transition-all"
+                  className="w-full bg-gray-900 dark:bg-gray-700 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-black dark:hover:bg-gray-600 transition-all"
                 >
                   {t('profit_calculator.close')}
                 </button>
@@ -1007,14 +979,14 @@ function DashboardContent() {
       {/* Connect Modal */}
       {connectBuyer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border border-transparent dark:border-gray-700">
             {connectStatus === 'sent' ? (
               <div className="p-12 text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="w-10 h-10 text-green-700" />
+                <div className="w-20 h-20 bg-green-100 dark:bg-green-950 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="w-10 h-10 text-green-700 dark:text-green-400" />
                 </div>
-                <h3 className="text-2xl font-black text-green-800 mb-2">{t('connect_modal.success_title')}</h3>
-                <p className="text-gray-600 font-medium mb-8">
+                <h3 className="text-2xl font-black text-green-800 dark:text-green-300 mb-2">{t('connect_modal.success_title')}</h3>
+                <p className="text-gray-600 dark:text-gray-400 font-medium mb-8">
                   {t('connect_modal.success_desc').replace('{{name}}', connectBuyer.name)}
                 </p>
                 <button
@@ -1023,19 +995,19 @@ function DashboardContent() {
                     setConnectStatus('idle');
                     setConnectForm({ crop: 'wheat', quantity: '', message: '' });
                   }}
-                  className="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-green-200 hover:bg-green-700 transition-all"
+                  className="w-full bg-green-600 dark:bg-green-700 text-white py-4 rounded-2xl font-black shadow-xl shadow-green-200 dark:shadow-green-900/40 hover:bg-green-700 dark:hover:bg-green-600 transition-all"
                 >
                   {t('connect_modal.done')}
                 </button>
               </div>
             ) : (
               <div className="p-8">
-                <div className="flex justify-between items-start mb-6 border-b border-gray-100 pb-6">
+                <div className="flex justify-between items-start mb-6 border-b border-gray-100 dark:border-gray-700 pb-6">
                   <div>
-                    <h3 className="text-2xl font-black text-gray-900 mb-1">{t('connect_modal.title')}</h3>
-                    <p className="text-sm font-bold text-gray-500">{connectBuyer.name}</p>
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-1">{t('connect_modal.title')}</h3>
+                    <p className="text-sm font-bold text-gray-500 dark:text-gray-400">{connectBuyer.name}</p>
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${connectBuyer.trust > 90 ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${connectBuyer.trust > 90 ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300' : 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'}`}>
                     Trust: {connectBuyer.trust}%
                   </div>
                 </div>
@@ -1043,9 +1015,9 @@ function DashboardContent() {
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-bold text-gray-500 mb-2">{t('connect_modal.crop_label')}</label>
+                      <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('connect_modal.crop_label')}</label>
                       <select
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all appearance-none"
+                        className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all appearance-none"
                         value={connectForm.crop}
                         onChange={(e) => {
                           if (isCropId(e.target.value)) {
@@ -1059,22 +1031,22 @@ function DashboardContent() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-bold text-gray-500 mb-2">{t('connect_modal.qty_label')}</label>
+                      <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('connect_modal.qty_label')}</label>
                       <input
                         type="number"
                         placeholder={t('connect_modal.qty_placeholder')}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
+                        className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"
                         value={connectForm.quantity}
                         onChange={(e) => setConnectForm({ ...connectForm, quantity: e.target.value })}
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-500 mb-2">{t('connect_modal.msg_label')}</label>
+                    <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mb-2">{t('connect_modal.msg_label')}</label>
                     <textarea
                       placeholder={t('connect_modal.msg_placeholder')}
                       rows={3}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all resize-none"
+                      className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-3 font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500 transition-all resize-none"
                       value={connectForm.message}
                       onChange={(e) => setConnectForm({ ...connectForm, message: e.target.value })}
                     ></textarea>
@@ -1084,7 +1056,7 @@ function DashboardContent() {
                 <div className="flex gap-3 mt-8">
                   <button
                     onClick={() => setConnectBuyer(null)}
-                    className="flex-1 py-4 rounded-2xl font-black text-gray-500 hover:bg-gray-50 transition-all"
+                    className="flex-1 py-4 rounded-2xl font-black text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
                     disabled={connectStatus === 'sending'}
                   >
                     {t('connect_modal.cancel')}
@@ -1111,7 +1083,7 @@ function DashboardContent() {
                       }
                     }}
                     disabled={connectStatus === 'sending' || !connectForm.quantity}
-                    className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-green-200 hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black shadow-xl shadow-green-200 dark:shadow-green-900/40 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {connectStatus === 'sending' ? (
                       <>
@@ -1131,27 +1103,27 @@ function DashboardContent() {
 
       {showPlannerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border border-transparent dark:border-gray-700">
             <div className="p-8">
               <div className="flex justify-between items-start gap-4 mb-6">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-600 mb-2">{t('planner.badge')}</p>
-                  <h3 className="text-2xl font-black text-gray-900">{t('planner.title')}</h3>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400 mb-2">{t('planner.badge')}</p>
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white">{t('planner.title')}</h3>
                 </div>
-                <button onClick={() => setShowPlannerModal(false)} className="text-gray-400 hover:text-gray-600" aria-label="Close next season planner">
+                <button onClick={() => setShowPlannerModal(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" aria-label="Close next season planner">
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-sm font-medium text-gray-600 leading-relaxed mb-6">{t('planner.description')}</p>
-              <div className="grid grid-cols-2 gap-3 text-xs font-bold text-gray-600 mb-8">
-                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">{t('planner.soil')}</div>
-                <div className="bg-green-50 border border-green-100 rounded-2xl p-4">{t('planner.water')}</div>
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">{t('planner.market')}</div>
-                <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4">{t('planner.credit')}</div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300 leading-relaxed mb-6">{t('planner.description')}</p>
+              <div className="grid grid-cols-2 gap-3 text-xs font-bold text-gray-600 dark:text-gray-300 mb-8">
+                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-4">{t('planner.soil')}</div>
+                <div className="bg-green-50 dark:bg-green-950/20 border border-green-100 dark:border-green-900/30 rounded-2xl p-4">{t('planner.water')}</div>
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-2xl p-4">{t('planner.market')}</div>
+                <div className="bg-gray-50 dark:bg-gray-800/80 border border-gray-100 dark:border-gray-700 rounded-2xl p-4">{t('planner.credit')}</div>
               </div>
               <button
                 onClick={() => setShowPlannerModal(false)}
-                className="w-full bg-gray-900 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-black transition-all"
+                className="w-full bg-gray-900 dark:bg-gray-700 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-black dark:hover:bg-gray-600 transition-all"
               >
                 {t('planner.close')}
               </button>
@@ -1159,24 +1131,10 @@ function DashboardContent() {
           </div>
         </div>
       )}
-
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
-        {voiceStatus && (
-          <div className="max-w-[260px] rounded-2xl bg-white px-4 py-3 text-xs font-bold text-gray-700 shadow-xl border border-green-100">
-            {voiceStatus}
-          </div>
-        )}
-        <button
-          onClick={startVoiceAssistant}
-          className={`p-4 rounded-full text-white shadow-lg transition-all ${isListening ? 'bg-red-600 scale-105' : 'bg-green-600 hover:bg-green-700'}`}
-          aria-label={t('voice.start')}
-          title={t('voice.start')}
-        >
-          <Mic className="w-6 h-6" />
-        </button>
+      {/* Multilingual Voice Assistant Overlay & Button */}
+      <VoiceAssistant />
       </div>
-
-    </div>
+    </VoiceProvider>
   );
 }
 
@@ -1184,9 +1142,9 @@ export default function Dashboard() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col items-center justify-center h-screen bg-green-50">
-          <Loader2 className="w-12 h-12 text-green-600 animate-spin mb-4" />
-          <p className="text-green-800 font-semibold text-lg">Loading dashboard...</p>
+        <div className="flex flex-col items-center justify-center h-screen bg-green-50 dark:bg-gray-900">
+          <Loader2 className="w-12 h-12 text-green-600 dark:text-green-400 animate-spin mb-4" />
+          <p className="text-green-800 dark:text-green-300 font-semibold text-lg">Loading dashboard...</p>
         </div>
       }
     >

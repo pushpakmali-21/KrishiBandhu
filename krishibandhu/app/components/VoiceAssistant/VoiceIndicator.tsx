@@ -15,7 +15,7 @@ export const VoiceIndicator: React.FC = () => {
       className={`fixed top-20 right-6 z-30 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-300 ${
         isListening
           ? 'bg-green-100 text-green-700 shadow-lg shadow-green-200'
-          : 'bg-gray-100 text-gray-600'
+          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-transparent dark:border-gray-700'
       }`}
       title={langNames[language]}
     >

@@ -48,7 +48,7 @@ interface SpeechRecognitionErrorLike {
 }
 
 interface SpeechRecognitionLike {
-  language: string;
+  lang: string;
   continuous: boolean;
   interimResults: boolean;
   maxAlternatives: number;
@@ -61,7 +61,7 @@ interface SpeechRecognitionLike {
 }
 
 type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-type SpeechRecognitionWindow = Window & {
+type SpeechRecognitionWindow = {
   SpeechRecognition?: SpeechRecognitionConstructor;
   webkitSpeechRecognition?: SpeechRecognitionConstructor;
 };
@@ -71,7 +71,8 @@ export const useVoiceIntent = (
   priceData: PriceData | null,
   recommendation: RecommendationData | null,
   weatherData: WeatherData | null,
-  initialLanguage: 'en-US' | 'hi-IN' | 'mr-IN' = 'en-US'
+  initialLanguage: 'en-US' | 'hi-IN' | 'mr-IN' = 'en-US',
+  onAction?: (action: string, data?: unknown) => void
 ) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -100,8 +101,8 @@ export const useVoiceIntent = (
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    const SpeechRecognition =
-      (window as SpeechRecognitionWindow).SpeechRecognition || (window as SpeechRecognitionWindow).webkitSpeechRecognition;
+    const speechWindow = window as unknown as SpeechRecognitionWindow;
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
       console.warn('Speech Recognition API not supported in this browser');
@@ -135,8 +136,8 @@ export const useVoiceIntent = (
   const startListening = useCallback(() => {
     if (typeof window === 'undefined') return;
 
-    const SpeechRecognition =
-      (window as SpeechRecognitionWindow).SpeechRecognition || (window as SpeechRecognitionWindow).webkitSpeechRecognition;
+    const speechWindow = window as unknown as SpeechRecognitionWindow;
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       console.error('Speech Recognition not supported');
@@ -148,7 +149,7 @@ export const useVoiceIntent = (
       
       // Use normalized language code for better browser compatibility
       const normalizedLang = getNormalizedLanguage(language);
-      recognitionRef.current.language = normalizedLang;
+      recognitionRef.current.lang = normalizedLang;
       
       console.log(`🎤 Starting speech recognition with language: ${normalizedLang}`);
       
@@ -182,6 +183,11 @@ export const useVoiceIntent = (
             });
             
             setLastResponse(intentResult.response);
+            
+            // Trigger callback action for dashboard state update
+            if (intentResult.action) {
+              onAction?.(intentResult.action, intentResult.data);
+            }
             
             // Speak the response
             speakResponse(intentResult.response, language);
@@ -219,7 +225,7 @@ export const useVoiceIntent = (
       console.error('Error starting speech recognition:', err);
       setIsListening(false);
     }
-  }, [language, selectedCrop, priceData, recommendation, weatherData, getNormalizedLanguage, speakResponse]);
+  }, [language, selectedCrop, priceData, recommendation, weatherData, getNormalizedLanguage, speakResponse, onAction]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -227,7 +233,6 @@ export const useVoiceIntent = (
     }
     setIsListening(false);
   }, []);
-
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
