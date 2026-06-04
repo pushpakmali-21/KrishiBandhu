@@ -311,14 +311,7 @@ function DashboardContent() {
     }
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-green-50 dark:bg-gray-950">
-        <Loader2 className="w-12 h-12 text-green-600 dark:text-green-400 animate-spin mb-4" />
-        <p className="text-green-800 dark:text-green-300 font-semibold text-lg">Harvesting latest data...</p>
-      </div>
-    );
-  }
+
 
 
 
@@ -438,7 +431,31 @@ function DashboardContent() {
               </div>
             </div>
 
-            {error ? (
+            {loading ? (
+              <div className="animate-in fade-in duration-300">
+                {/* Skeleton Metrics Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                  {[1,2,3,4].map((i) => (
+                    <div key={i} className="bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm">
+                      <div className="h-3 w-24 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse mb-4" />
+                      <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-10">
+                  <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm">
+                    <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse mb-6" />
+                    <div className="h-8 w-32 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse mb-4" />
+                    <div className="h-3 w-full bg-gray-100 dark:bg-gray-700/50 rounded-full animate-pulse mb-2" />
+                    <div className="h-3 w-3/4 bg-gray-100 dark:bg-gray-700/50 rounded-full animate-pulse" />
+                  </div>
+                  <div className="lg:col-span-3 bg-white dark:bg-gray-800 rounded-3xl p-8 border border-green-100 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center gap-4">
+                    <Loader2 className="w-8 h-8 text-green-500 animate-spin" />
+                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Harvesting latest data…</p>
+                  </div>
+                </div>
+              </div>
+            ) : error ? (
               <div className="bg-white dark:bg-gray-800/80 rounded-3xl p-12 border border-red-100 dark:border-red-900/30 shadow-sm text-center max-w-2xl mx-auto my-12 animate-in fade-in duration-500">
                 <p className="text-6xl mb-6">⚠️</p>
                 <h2 className="text-2xl font-black text-red-800 dark:text-red-400 mb-4">Data Unavailable</h2>

@@ -25,14 +25,15 @@ export default function LanguageSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="nav-icon-btn"
+        className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50/50 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-green-700 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-green-400"
         aria-label="Switch language"
-        title={`Language: ${current.full}`}
+        title="Language Switcher"
       >
         <Globe
-          className="nav-icon-glyph"
+          className="h-4 w-4 shrink-0 text-green-600 dark:text-lime-400"
           style={{ transform: open ? 'rotate(20deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}
         />
+        <span>{current.code === 'hi' ? 'हिंदी' : current.code === 'mr' ? 'मराठी' : 'EN'}</span>
       </button>
 
       {open && (
