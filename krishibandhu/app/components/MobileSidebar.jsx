@@ -183,8 +183,9 @@ export default function MobileSidebar({ isOpen, onClose, isLoggedIn = false, act
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-      const rafId = requestAnimationFrame(() => setAnimating(true));
-      return () => cancelAnimationFrame(rafId);
+      // Use microtask to defer animation state change
+      queueMicrotask(() => setAnimating(true));
+      return;
     } else if (mounted) {
       const timer = setTimeout(() => {
         setMounted(false);
