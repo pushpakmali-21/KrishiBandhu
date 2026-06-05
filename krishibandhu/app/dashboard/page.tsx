@@ -93,27 +93,34 @@ function DashboardContent() {
   ];
 
   useEffect(() => {
-    if (!API_BASE) {
-      setIsLoggedIn(false);
-      return;
-    }
+    let isMounted = true;
 
-    // Use an async IIFE to avoid direct setState
-    (async () => {
+    const initializeData = async () => {
+      if (!API_BASE) {
+        if (isMounted) setIsLoggedIn(false);
+        return;
+      }
+
       try {
         const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' });
         const data = await res.json();
-        setIsLoggedIn(!!data.authenticated);
+        if (isMounted) setIsLoggedIn(!!data.authenticated);
       } catch {
-        setIsLoggedIn(false);
+        if (isMounted) setIsLoggedIn(false);
       }
 
       const savedCrop = localStorage.getItem('kb_pinned_crop');
-      if (isCropId(savedCrop)) {
+      if (isMounted && isCropId(savedCrop)) {
         setPinnedCrop(savedCrop);
         setSelectedCrop(savedCrop);
       }
-    })();
+    };
+
+    initializeData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {

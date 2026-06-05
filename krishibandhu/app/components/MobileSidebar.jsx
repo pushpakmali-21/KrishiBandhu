@@ -183,7 +183,8 @@ export default function MobileSidebar({ isOpen, onClose, isLoggedIn = false, act
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-      requestAnimationFrame(() => setAnimating(true));
+      const rafId = requestAnimationFrame(() => setAnimating(true));
+      return () => cancelAnimationFrame(rafId);
     } else if (mounted) {
       const timer = setTimeout(() => {
         setAnimating(false);
