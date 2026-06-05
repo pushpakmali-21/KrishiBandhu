@@ -12,6 +12,7 @@
 const path = require('path');
 const connectDB = require('../db');
 const DailyPrice = require('../models/DailyPrice');
+const Farmer = require('../models/Farmer');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const mockPrices = require('../data/mock-prices');
@@ -19,6 +20,21 @@ const mockPrices = require('../data/mock-prices');
 async function seedHistoricalData() {
   console.log('🌱 Seeding historical data from mock-prices...\n');
   await connectDB();
+
+  console.log('🧑‍🌾 Seeding dummy farmer profile...');
+  await Farmer.findOneAndUpdate(
+    { farmerId: 'f101' },
+    {
+      farmerId: 'f101',
+      name: 'Ramesh Patel',
+      transactionCount: 42,
+      avgBuyerRating: 4.8,
+      onTimeFulfillmentRate: 98,
+      verified: true
+    },
+    { upsert: true }
+  );
+  console.log('   ✅ Done\\n');
 
   let totalInserted = 0;
   let totalSkipped = 0;
