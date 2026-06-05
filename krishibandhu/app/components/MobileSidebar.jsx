@@ -182,8 +182,10 @@ export default function MobileSidebar({ isOpen, onClose, isLoggedIn = false, act
   /* Mount / unmount with animation */
   useEffect(() => {
     if (isOpen) {
-      setMounted(true);
-      setAnimating(true);
+      queueMicrotask(() => {
+        setMounted(true);
+        setAnimating(true);
+      });
       return;
     } else if (mounted) {
       const timer = setTimeout(() => {
