@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVoice } from '../../context/VoiceContext';
 import { Mic, Square, Loader2 } from 'lucide-react';
 
@@ -12,12 +12,19 @@ type SpeechRecognitionWindow = Window & {
 
 export const VoiceButton: React.FC = () => {
   const { isListening, isProcessing, language, startListening, stopListening } = useVoice();
+  const [mounted, setMounted] = useState(false);
 
-  // Check browser support without state
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent hydration mismatch by returning null until client is mounted
+  if (!mounted) {
+    return null;
+  }
+
   const SpeechRecognition =
-    typeof window !== 'undefined'
-      ? (window as SpeechRecognitionWindow).SpeechRecognition || (window as SpeechRecognitionWindow).webkitSpeechRecognition
-      : null;
+    (window as SpeechRecognitionWindow).SpeechRecognition || (window as SpeechRecognitionWindow).webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
     return null;

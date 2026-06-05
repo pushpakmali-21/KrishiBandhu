@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Phone, Lock, CheckCircle2 } from 'lucide-react';
@@ -9,29 +9,98 @@ import { useSearchParams } from 'next/navigation';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import ThemeToggle from '../components/ThemeToggle';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+
 function LoginPageContent() {
     const { t } = useTranslation();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [step, setStep] = useState(1); // 1: Phone, 2: OTP
+    const [otp, setOtp] = useState(['', '', '', '']);
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-    const handleGetOtp = (e: React.FormEvent) => {
+    const handleGetOtp = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!API_BASE) {
+            alert('NEXT_PUBLIC_API_BASE environment variable is not set.');
+            return;
+        }
+
         if (phoneNumber.length === 10) {
-            setStep(2);
+            try {
+                const res = await fetch(`${API_BASE}/auth/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber }),
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setStep(2);
+                } else {
+                    alert(data.error || 'Failed to send OTP');
+                }
+            } catch (error) {
+                console.error('OTP error:', error);
+                alert('Failed to connect to server');
+            }
         }
     };
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleOtpChange = (index: number, value: string) => {
+        if (!/^\d*$/.test(value)) return;
+        
+        const newOtp = [...otp];
+        newOtp[index] = value;
+        setOtp(newOtp);
+
+        if (value !== '' && index < 3) {
+            inputRefs.current[index + 1]?.focus();
+        }
+    };
+
+    const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Backspace' && otp[index] === '' && index > 0) {
+            inputRefs.current[index - 1]?.focus();
+        }
+    };
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        localStorage.setItem('kb_auth', 'true');
-        const redirectTo = searchParams.get('redirect') || '/dashboard';
-        const tab = searchParams.get('tab');
-        if (tab) {
-            router.push(`${redirectTo}?tab=${tab}`);
-        } else {
-            router.push(redirectTo);
+        const otpString = otp.join('');
+        if (otpString.length !== 4) return;
+        if (!API_BASE) {
+            alert('NEXT_PUBLIC_API_BASE environment variable is not set.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phoneNumber, otp: otpString }),
+                credentials: 'include'
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                // Remove the old localStorage fallback
+                localStorage.removeItem('kb_auth');
+                
+                const redirectTo = searchParams.get('redirect') || '/dashboard';
+                const tab = searchParams.get('tab');
+                if (tab) {
+                    router.push(`${redirectTo}?tab=${tab}`);
+                } else {
+                    router.push(redirectTo);
+                }
+            } else {
+                alert(data.error || 'Login failed');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Failed to connect to server');
         }
     };
 
@@ -105,13 +174,17 @@ function LoginPageContent() {
                                         Enter 4-digit OTP sent to {phoneNumber}
                                     </label>
                                     <div className="flex justify-center gap-4">
-                                        {[1, 2, 3, 4].map((i) => (
+                                        {[0, 1, 2, 3].map((i) => (
                                             <input
                                                 key={i}
+                                                ref={(el) => { inputRefs.current[i] = el; }}
                                                 type="text"
+                                                inputMode="numeric"
                                                 maxLength={1}
+                                                value={otp[i]}
+                                                onChange={(e) => handleOtpChange(i, e.target.value)}
+                                                onKeyDown={(e) => handleOtpKeyDown(i, e)}
                                                 className="w-14 h-16 text-center text-2xl font-bold bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all text-black dark:text-white"
-                                                defaultValue={i === 1 ? "1" : i === 2 ? "2" : i === 3 ? "3" : "4"}
                                             />
                                         ))}
                                     </div>

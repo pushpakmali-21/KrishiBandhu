@@ -1,6 +1,8 @@
+'use client';
+import { useEffect, useState } from 'react';
 import { IndianRupee, TrendingDown, TrendingUp } from 'lucide-react';
 
-const CROPS = [
+const DEFAULT_CROPS = [
   { name: 'Wheat', price: '2,180/q', change: '+1.2%', up: true },
   { name: 'Rice', price: '3,450/q', change: '+0.8%', up: true },
   { name: 'Soybean', price: '4,720/q', change: '-0.4%', up: false },
@@ -11,9 +13,34 @@ const CROPS = [
   { name: 'Sugarcane', price: '340/q', change: '+0.3%', up: true },
 ];
 
-const ITEMS = [...CROPS, ...CROPS];
-
 export default function MandiTicker() {
+  const [crops, setCrops] = useState(DEFAULT_CROPS);
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000/api';
+        const res = await fetch(`${API_BASE}/insights`);
+        if (!res.ok) throw new Error('API failed');
+        const data = await res.json();
+        if (data && data.length > 0) {
+          const mapped = data.map(d => ({
+            name: d.crop,
+            price: `${d.price.toLocaleString('en-IN')}/q`,
+            change: `${d.change > 0 ? '+' : ''}${d.change}%`,
+            up: d.up
+          }));
+          setCrops(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to load mandi ticker:', err);
+      }
+    };
+    fetchInsights();
+  }, []);
+
+  const items = [...crops, ...crops, ...crops];
+
   return (
     <div className="mt-1.5 flex items-center overflow-hidden border-y border-green-200 bg-green-50/80 backdrop-blur-sm sm:mt-2 dark:border-green-900/60 dark:bg-green-950/80">
       <div className="relative z-10 flex shrink-0 items-center justify-center bg-green-600 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-white shadow-[6px_0_12px_-2px_rgba(22,163,74,0.4)] dark:bg-lime-500 dark:text-green-950 dark:shadow-[6px_0_12px_-2px_rgba(132,204,22,0.3)]">
@@ -21,7 +48,7 @@ export default function MandiTicker() {
       </div>
       <div className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_16px,black_calc(100%-16px),transparent)]">
         <div className="flex animate-ticker whitespace-nowrap pl-4">
-          {ITEMS.map((crop, i) => {
+          {items.map((crop, i) => {
             const TrendIcon = crop.up ? TrendingUp : TrendingDown;
 
             return (

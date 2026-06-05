@@ -7,6 +7,10 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "smoke": "node scripts/smoke-test.cjs",
+    "ingest": "node scripts/ingest-prices.js",
+    "ml-pipeline": "node scripts/run-ml-pipeline.js",
+    "seed": "node scripts/seed-historical.js",
+    "daily-update": "npm run ingest && npm run ml-pipeline",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,9 +18,13 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
-    "dotenv": "^17.3.1",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.3",
     "node-cron": "^4.2.1"
   },
   "devDependencies": {

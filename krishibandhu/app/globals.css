@@ -675,3 +675,309 @@ body {
   animation-play-state: paused;
 }
 
+/* ==================== Navbar Glassmorphism ==================== */
+
+/* Base glass layer — light */
+.navbar-glass {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* When scrolled — tighten glass + add green glow line */
+.navbar-glass.scrolled {
+  background: rgba(255, 255, 255, 0.72);
+  border-bottom-color: rgba(34, 197, 94, 0.22);
+  box-shadow:
+    0 1px 0 rgba(34, 197, 94, 0.12),
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 2px 8px rgba(34, 197, 94, 0.04);
+}
+
+/* Dark mode variants */
+.dark .navbar-glass {
+  background: rgba(9, 18, 9, 0.55);
+  border-bottom-color: rgba(74, 222, 128, 0.12);
+}
+
+.dark .navbar-glass.scrolled {
+  background: rgba(9, 18, 9, 0.78);
+  border-bottom-color: rgba(74, 222, 128, 0.22);
+  box-shadow:
+    0 1px 0 rgba(74, 222, 128, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(74, 222, 128, 0.06);
+}
+
+/* Active nav link — gradient underline bar */
+.nav-link-active {
+  color: #15803d;
+  position: relative;
+}
+.nav-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #4ade80, #16a34a, #a3e635);
+  opacity: 0.9;
+}
+
+.dark .nav-link-active {
+  color: #4ade80;
+}
+
+/* ==================== Sub-menu Dropdown ==================== */
+
+@keyframes submenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes submenuOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+
+.submenu-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 55;
+  min-width: 260px;
+  border-radius: 20px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.1),
+    0 4px 12px rgba(34, 197, 94, 0.08);
+  animation: submenuIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dark .submenu-panel {
+  background: rgba(10, 20, 10, 0.78);
+  border-color: rgba(74, 222, 128, 0.18);
+  box-shadow:
+    0 0 0 1px rgba(74, 222, 128, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(74, 222, 128, 0.08);
+}
+
+.submenu-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.submenu-item:hover {
+  background: rgba(34, 197, 94, 0.07);
+}
+
+.dark .submenu-item:hover {
+  background: rgba(74, 222, 128, 0.08);
+}
+
+.submenu-icon-wrap {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.submenu-item:hover .submenu-icon-wrap {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.dark .submenu-icon-wrap {
+  background: rgba(74, 222, 128, 0.08);
+  border-color: rgba(74, 222, 128, 0.15);
+}
+
+.dark .submenu-item:hover .submenu-icon-wrap {
+  background: rgba(74, 222, 128, 0.16);
+  border-color: rgba(74, 222, 128, 0.28);
+}
+
+.submenu-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #15803d;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.dark .submenu-label {
+  color: #4ade80;
+}
+
+.submenu-desc {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.dark .submenu-desc {
+  color: #9ca3af;
+}
+
+/* ==================== Hamburger → X Morph ==================== */
+
+.hamburger-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+.hamburger-btn:hover {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.6);
+  box-shadow:
+    0 0 0 4px rgba(34, 197, 94, 0.1),
+    0 4px 16px rgba(34, 197, 94, 0.25);
+  transform: scale(1.1);
+}
+
+.hamburger-btn:active {
+  transform: scale(0.93);
+}
+
+.dark .hamburger-btn {
+  border-color: rgba(74, 222, 128, 0.3);
+  background: rgba(74, 222, 128, 0.07);
+  box-shadow: 0 2px 8px rgba(74, 222, 128, 0.08);
+}
+
+.dark .hamburger-btn:hover {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.55);
+  box-shadow:
+    0 0 0 4px rgba(74, 222, 128, 0.08),
+    0 4px 16px rgba(74, 222, 128, 0.2);
+}
+
+/* The three bars */
+.hb-bar {
+  position: absolute;
+  left: 10px;
+  height: 2px;
+  border-radius: 9999px;
+  background: #16a34a;
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+              opacity   0.3s ease,
+              width     0.3s ease;
+}
+
+.dark .hb-bar {
+  background: #4ade80;
+}
+
+.hb-top { top: 13px; width: 20px; }
+.hb-mid { top: 19px; width: 16px; }
+.hb-bot { top: 25px; width: 20px; }
+
+/* Open state — morph to X */
+.hamburger-btn.open .hb-top {
+  transform: translateY(6px) rotate(45deg);
+  width: 20px;
+}
+.hamburger-btn.open .hb-mid {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.hamburger-btn.open .hb-bot {
+  transform: translateY(-6px) rotate(-45deg);
+  width: 20px;
+}
+
+/* ==================== Mobile Accordion Sub-menu ==================== */
+
+@keyframes accordionDown {
+  from { opacity: 0; max-height: 0; }
+  to   { opacity: 1; max-height: 300px; }
+}
+
+@keyframes accordionUp {
+  from { opacity: 1; max-height: 300px; }
+  to   { opacity: 0; max-height: 0; }
+}
+
+.accordion-content {
+  overflow: hidden;
+  animation: accordionDown 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.accordion-content.closing {
+  animation: accordionUp 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ==================== Mobile Sidebar Glass ==================== */
+
+.sidebar-glass {
+  background: rgba(240, 253, 244, 0.72);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border-left: 1px solid rgba(34, 197, 94, 0.15);
+}
+
+.dark .sidebar-glass {
+  background: rgba(5, 15, 5, 0.78);
+  border-left-color: rgba(74, 222, 128, 0.12);
+}
+
+/* Sidebar top accent gradient line */
+.sidebar-accent-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #4ade80, #16a34a, #a3e635, transparent);
+  opacity: 0.7;
+}
+

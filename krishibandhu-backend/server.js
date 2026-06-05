@@ -1,26 +1,52 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const connectDB = require('./db');
+const { getJwtSecret } = require('./utils/auth');
 
+getJwtSecret();
+
+// Connect to MongoDB
+connectDB();
 const pricesRoute = require('./routes/prices');
 const weatherRoute = require('./routes/weather');
 const recommendationsRoute = require('./routes/recommendations');
 const trustRoute = require('./routes/trust');
+const insightsRoute = require('./routes/insights');
+
+const cookieParser = require('cookie-parser');
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 const PORT = process.env.PORT || 5000;
+
+// Rate limiting
+const rateLimit = require('express-rate-limit');
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply the rate limiting middleware to all requests starting with /api/
+app.use('/api/', limiter);
 
 // Routes
 app.use('/api/prices', pricesRoute);
 app.use('/api/weather', weatherRoute);
 app.use('/api/recommendations', recommendationsRoute);
 app.use('/api/trust', trustRoute);
+app.use('/api/insights', insightsRoute);
+app.use('/api/auth', require('./routes/auth'));
+
+const authenticate = require('./middleware/auth');
 
 // Mock Marketplace Connect Route
-app.post('/api/marketplace/connect', (req, res) => {
+app.post('/api/marketplace/connect', authenticate, (req, res) => {
   const { buyerName, crop, quantity, message } = req.body;
   if (!buyerName || !crop || !quantity) {
     return res.status(400).json({ success: false, error: 'Missing required fields' });

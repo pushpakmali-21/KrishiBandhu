@@ -1,37 +1,44 @@
 const express = require('express');
-const mockPrices = require('../data/mock-prices');
-const { callPythonModel } = require('../ml-integration');
+const CropForecast = require('../models/CropForecast');
+const DailyPrice = require('../models/DailyPrice');
+const { normalizeCropId } = require('../utils/crops');
 const router = express.Router();
 
 // GET /api/recommendations/:crop
 router.get('/:crop', async (req, res) => {
   const { crop } = req.params;
-  const targetCrop = Object.keys(mockPrices).find(k => k.toLowerCase() === crop.toLowerCase());
+  const internalCropName = normalizeCropId(crop);
 
-  if (!targetCrop || !mockPrices[targetCrop]) {
-    return res.status(404).json({ error: 'Crop not found' });
+  if (!internalCropName) {
+    return res.status(400).json({ error: 'Invalid crop specified' });
   }
 
-  const data = mockPrices[targetCrop];
-
   try {
-    const mlResult = await callPythonModel({
-      crop: targetCrop,
-      history: data.history,
-      current: data.current
-    });
+    const forecastData = await CropForecast.findOne({ crop: internalCropName });
+    const latestPrice = await DailyPrice.findOne({ crop: internalCropName }).sort({ date: -1 });
+
+    if (!forecastData) {
+      return res.json({
+        crop: internalCropName,
+        recommendation: 'HOLD',
+        confidence: 0,
+        reasoning: 'Forecast not yet available. Please run the ML pipeline.',
+        expectedPrice: latestPrice ? latestPrice.modalPrice : 0,
+        daysToWait: 0
+      });
+    }
 
     res.json({
-      crop: targetCrop,
-      recommendation: mlResult.recommendation.action,
-      confidence: mlResult.recommendation.confidence,
-      reasoning: mlResult.recommendation.reasoning || mlResult.recommendation.action,
-      expectedPrice: mlResult.recommendation.expected_price || data.current,
-      daysToWait: mlResult.recommendation.days_to_wait || 0
+      crop: internalCropName,
+      recommendation: forecastData.recommendation,
+      confidence: 0.85, // Add to schema later if needed
+      reasoning: `Based on a current price of ₹${latestPrice ? latestPrice.modalPrice : forecastData.currentPrice} and a volatility of ${forecastData.volatility.toFixed(1)}%, it is best to ${forecastData.recommendation}.`,
+      expectedPrice: forecastData.forecast[0] || forecastData.currentPrice,
+      daysToWait: forecastData.recommendation === 'WAIT' ? 7 : 0
     });
   } catch (err) {
-    console.error('ML Recommendation Error:', err);
-    res.status(500).json({ error: 'Failed to generate ML recommendation' });
+    console.error('Recommendation Error:', err);
+    res.status(500).json({ error: 'Failed to fetch recommendation' });
   }
 });
 

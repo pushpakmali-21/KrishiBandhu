@@ -1,4 +1,5 @@
 const app = require('../server');
+const Otp = require('../models/Otp');
 
 function listen(appInstance) {
   return new Promise((resolve) => {
@@ -14,6 +15,15 @@ async function readJson(response) {
   }
 
   return response.json();
+}
+
+function cookieHeaderFrom(response) {
+  const setCookie = response.headers.get('set-cookie');
+  if (!setCookie) {
+    throw new Error('Login did not return an auth cookie');
+  }
+
+  return setCookie.split(';')[0];
 }
 
 async function main() {
@@ -42,9 +52,32 @@ async function main() {
       throw new Error('Trust endpoint returned malformed data');
     }
 
-    const connect = await readJson(await fetch(`${baseUrl}/api/marketplace/connect`, {
+    const phoneNumber = '9999999999';
+    await readJson(await fetch(`${baseUrl}/api/auth/send-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phoneNumber }),
+    }));
+
+    const otpRecord = await Otp.findOne({ phoneNumber }).sort({ createdAt: -1 });
+    if (!otpRecord) {
+      throw new Error('OTP was not created during smoke test');
+    }
+
+    const loginResponse = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phoneNumber, otp: otpRecord.otp }),
+    });
+    const login = await readJson(loginResponse);
+    if (!login.success) {
+      throw new Error('Login endpoint did not authenticate the smoke-test user');
+    }
+    const authCookie = cookieHeaderFrom(loginResponse);
+
+    const connect = await readJson(await fetch(`${baseUrl}/api/marketplace/connect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: authCookie },
       body: JSON.stringify({ buyerName: 'Kisan Tradelink', crop: 'wheat', quantity: '10' }),
     }));
     if (!connect.success) {

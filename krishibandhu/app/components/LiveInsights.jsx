@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { TrendingUp, TrendingDown, Zap, IndianRupee, BarChart3 } from 'lucide-react';
 
-const INSIGHTS = [
+const DEFAULT_INSIGHTS = [
   { crop: 'Wheat', emoji: '🌾', price: 2450, change: +3.2, rec: 'SELL NOW', conf: 82, up: true, peak: 2680, color: 'green' },
   { crop: 'Cotton', emoji: '🌿', price: 6800, change: +1.8, rec: 'HOLD', conf: 74, up: true, peak: 7150, color: 'blue' },
   { crop: 'Jowar', emoji: '🌽', price: 3100, change: -0.6, rec: 'WAIT', conf: 68, up: false, peak: 3380, color: 'amber' },
@@ -22,8 +22,26 @@ const colorMap = {
 export default function LiveInsights() {
   const sectionRef = useRef(null);
   const [active, setActive] = useState(0);
-  const insight = INSIGHTS[active];
-  const c = colorMap[insight.color];
+  const [insightsData, setInsightsData] = useState(DEFAULT_INSIGHTS);
+  const insight = insightsData[active] || DEFAULT_INSIGHTS[0];
+  const c = colorMap[insight?.color || 'blue'] || colorMap.blue;
+
+  useEffect(() => {
+    const fetchInsights = async () => {
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000/api';
+        const res = await fetch(`${API_BASE}/insights`);
+        if (!res.ok) throw new Error('API failed');
+        const data = await res.json();
+        if (data && data.length > 0) {
+          setInsightsData(data);
+        }
+      } catch (err) {
+        console.error('Failed to load live insights:', err);
+      }
+    };
+    fetchInsights();
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -36,12 +54,12 @@ export default function LiveInsights() {
 
   // Auto-cycle crops
   useEffect(() => {
-    const id = setInterval(() => setActive((a) => (a + 1) % INSIGHTS.length), 3000);
+    const id = setInterval(() => setActive((a) => (a + 1) % insightsData.length), 3000);
     return () => clearInterval(id);
-  }, []);
+  }, [insightsData.length]);
 
   return (
-    <section className="relative bg-gray-950 px-5 py-20 sm:px-8 sm:py-24 overflow-hidden">
+    <section id="live-insights" className="relative bg-gray-950 px-5 py-20 sm:px-8 sm:py-24 overflow-hidden">
       {/* Subtle grid overlay */}
       <div className="absolute inset-0 opacity-[0.03]"
            style={{ backgroundImage: 'linear-gradient(#4ade80 1px, transparent 1px), linear-gradient(90deg, #4ade80 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -70,7 +88,7 @@ export default function LiveInsights() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
           {/* Left: crop selector */}
           <div className="lg:col-span-2 space-y-3">
-            {INSIGHTS.map((ins, i) => (
+            {insightsData.map((ins, i) => (
               <button
                 key={i}
                 onClick={() => setActive(i)}
