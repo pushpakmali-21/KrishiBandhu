@@ -50,6 +50,16 @@ jobs:
       - name: Build frontend
         run: npm run build --prefix krishibandhu
 
+      - name: Seed Database
+        run: npm run seed --prefix krishibandhu-backend
+        env:
+          MONGODB_URI: mongodb://localhost:27017/krishibandhu-test
+
+      - name: Run ML pipeline
+        run: npm run ml-pipeline --prefix krishibandhu-backend
+        env:
+          MONGODB_URI: mongodb://localhost:27017/krishibandhu-test
+
       - name: Smoke test backend
         run: npm run smoke --prefix krishibandhu-backend
         env:
