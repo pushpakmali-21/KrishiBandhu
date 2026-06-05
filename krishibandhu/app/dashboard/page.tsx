@@ -98,16 +98,22 @@ function DashboardContent() {
       return;
     }
 
-    fetch(`${API_BASE}/auth/check`, { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => setIsLoggedIn(!!data.authenticated))
-      .catch(() => setIsLoggedIn(false));
+    // Use an async IIFE to avoid direct setState
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/auth/check`, { credentials: 'include' });
+        const data = await res.json();
+        setIsLoggedIn(!!data.authenticated);
+      } catch {
+        setIsLoggedIn(false);
+      }
 
-    const savedCrop = localStorage.getItem('kb_pinned_crop');
-    if (isCropId(savedCrop)) {
-      setPinnedCrop(savedCrop);
-      setSelectedCrop(savedCrop);
-    }
+      const savedCrop = localStorage.getItem('kb_pinned_crop');
+      if (isCropId(savedCrop)) {
+        setPinnedCrop(savedCrop);
+        setSelectedCrop(savedCrop);
+      }
+    })();
   }, []);
 
   useEffect(() => {

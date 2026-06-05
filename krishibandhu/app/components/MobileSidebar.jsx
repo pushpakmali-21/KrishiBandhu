@@ -185,11 +185,13 @@ export default function MobileSidebar({ isOpen, onClose, isLoggedIn = false, act
       setMounted(true);
       requestAnimationFrame(() => setAnimating(true));
     } else if (mounted) {
-      setAnimating(false);
-      const timer = setTimeout(() => setMounted(false), 320);
+      const timer = setTimeout(() => {
+        setAnimating(false);
+        setMounted(false);
+      }, 320);
       return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, mounted]);
 
 
   /* Body scroll lock — restores scroll synchronously so navigation doesn't fight with scrollTo */
