@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useVoice } from '../../context/VoiceContext';
 import { Mic, Square, Loader2 } from 'lucide-react';
 

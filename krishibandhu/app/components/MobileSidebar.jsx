@@ -187,8 +187,8 @@ export default function MobileSidebar({ isOpen, onClose, isLoggedIn = false, act
       return () => cancelAnimationFrame(rafId);
     } else if (mounted) {
       const timer = setTimeout(() => {
-        setAnimating(false);
         setMounted(false);
+        setAnimating(false);
       }, 320);
       return () => clearTimeout(timer);
     }
