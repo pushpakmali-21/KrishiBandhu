@@ -183,8 +183,7 @@ export default function MobileSidebar({ isOpen, onClose, isLoggedIn = false, act
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-      // Use microtask to defer animation state change
-      queueMicrotask(() => setAnimating(true));
+      setAnimating(true);
       return;
     } else if (mounted) {
       const timer = setTimeout(() => {
