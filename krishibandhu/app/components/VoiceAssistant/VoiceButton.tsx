@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useVoice } from '../../context/VoiceContext';
 import { Mic, Square, Loader2 } from 'lucide-react';
 
@@ -13,16 +13,18 @@ type SpeechRecognitionWindow = Window & {
 export const VoiceButton: React.FC = () => {
   const { isListening, isProcessing, language, startListening, stopListening } = useVoice();
   const mountedRef = useRef(false);
+  const [isMounted, setIsMounted] = React.useState(false);
 
   useEffect(() => {
     mountedRef.current = true;
+    setIsMounted(true);
     return () => {
       mountedRef.current = false;
     };
   }, []);
 
   // Prevent hydration mismatch by returning null until client is mounted
-  if (typeof window === 'undefined' || !mountedRef.current) {
+  if (typeof window === 'undefined' || !isMounted) {
     return null;
   }
 

@@ -117,19 +117,23 @@ function DashboardContent() {
   }, []);
 
   useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (isTabId(tab)) {
-      setCurrentTab(tab);
-    }
+    (async () => {
+      const tab = searchParams.get('tab');
+      if (isTabId(tab)) {
+        setCurrentTab(tab);
+      }
+    })();
   }, [searchParams]);
 
   // Synchronize calculator inputs with farmer inputs when the calculator modal opens
   useEffect(() => {
-    if (showCalcModal) {
-      if (farmerInputs.quantity) setCalcYield(farmerInputs.quantity);
-      if (farmerInputs.distance) setCalcDistance(farmerInputs.distance);
-      if (farmerInputs.transportMode) setCalcTransportMode(farmerInputs.transportMode);
-    }
+    (async () => {
+      if (showCalcModal) {
+        if (farmerInputs.quantity) setCalcYield(farmerInputs.quantity);
+        if (farmerInputs.distance) setCalcDistance(farmerInputs.distance);
+        if (farmerInputs.transportMode) setCalcTransportMode(farmerInputs.transportMode);
+      }
+    })();
   }, [showCalcModal, farmerInputs]);
 
   const quantityNum = parseFloat(farmerInputs.quantity) || 0;
